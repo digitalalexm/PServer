@@ -1,0 +1,8 @@
+Personal/Stereotype/Community preference profiles
+
+{ _id:{ name:"", idx:1 },
+  preferences: [ feature :{ name: "", score:"" } ]
+
+Personal Attrobies
+{ _id:<user_name>, attributes[attributes:{name:"", values:""}]}
+

@@ -32,7 +32,7 @@ public class PServerTester {
             prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         user.setPreferences(prefernces);
-        //PUserDao.SetUserProfile(db, "some_client", user );
-        PUserDao.getUserProfile(db, "some_client", user.getName() );
+        PUserDao.SetUserProfile(db, "some_client", user );
+        //PUserDao.getUserProfile(db, "some_client", user.getName() );
     }
 }
