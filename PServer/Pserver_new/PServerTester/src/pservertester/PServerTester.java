@@ -35,28 +35,29 @@ public class PServerTester {
         PUser user = new PUser();
         user.setName("some_user");
         ArrayList<PFeature> prefernces = new ArrayList<PFeature>();
-        for( int i = 0 ; i < 100000; i ++ ) {
+        for( int i = 0 ; i < 10000000; i ++ ) {
             prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         user.setPreferences(prefernces);
-        //PUserDao.SetUserProfile(db, "some_client", user );
+        PUserDao.SetUserProfile(db, "some_client", user );
         
         DBCollection col = db.getCollection(PUserDao.COLLECTION_USER_PROFILES + "_" + "some_client");
-        DBObject obj = col.findOne( );
-        BasicDBObject id = new BasicDBObject((Map) col.findOne( null, new BasicDBObject("_id", 1) ));
-        BasicDBObject idExt = id.append("features.name", "ftr1");
-        BasicDBObject FeatureValue = new BasicDBObject("features", new BasicDBObject("name","ftr2"));
-        //BasicDBObject incFeatureValue = new BasicDBObject("$inc", FeatureValue);
-        //BasicDBObject pullFeatureValue = new BasicDBObject("$pull", FeatureValue);
-        System.out.println( obj.toString());
-        //System.out.println( id.toString());        
-        GeneralPreferenceDAO.removePreferences(col, "some_user", 0);
-        int numOfDocs = GeneralPreferenceDAO.getNumberOfPreferenceDocuments(col, "some_user");
-        System.out.println( numOfDocs  );
-        //col.update(idExt, pullFeatureValue);
-        /*System.out.println( idExt.toString());
-        System.out.println(pullFeatureValue.toString());        
-        col.findOne(id);*/        
-        //PUserDao.getUserProfile(db, "some_client", user.getName() );
+        DBObject obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));
+        
+        System.out.println( obj.toString()  );
+        
+        //=====================update preferences
+        ArrayList<PFeature> updatePrefernces = new ArrayList<PFeature>();
+        for( int i = prefernces.size()/2 ; i < prefernces.size() + 5; i ++ ) {
+            if( i % 2 == 0 ){
+                continue;
+            }
+            prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
+        }
+        
+        PUserDao.updateUserProfile(db, "some_client", user.getName(), updatePrefernces, true );
+        
+        obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));        
+        System.out.println( obj.toString()  );
     }
 }

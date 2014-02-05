@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import pserver.domain.PFeature;
 import pserver.domain.PUser;
-import pserver.parameters.Parameters;
 
 /**
  *
@@ -63,16 +62,16 @@ public class PUserDao {
         if( userProfiles.getIndexInfo().isEmpty() == true ) {
             createUserProfileIndeces( userProfiles );
         }        
-        
+        GeneralPreferenceDAO.removeAllPreferences(userProfiles,  user.getName());
         GeneralPreferenceDAO.storeAllPreferences(userProfiles, user.getName(), user.getPreferences());
     }
 
     private static void createUserProfileIndeces( DBCollection userProfilesCollection ) {
-        System.out.println("creating indeces");
+        userProfilesCollection.createIndex( new BasicDBObject("_id."+PREFERENCE_PROFILE_ID_NAME,1));
     }
     
-    public static void UpdateUserProfile( DB db, String pclient, String userName, ArrayList<PFeature> values, boolean mustInc ){
-        
+    public static void updateUserProfile( DB db, String pclient, String userName, ArrayList<PFeature> values, boolean mustInc ){
+        GeneralPreferenceDAO.updatePreferences(userProfiles, user.getName(), user.getPreferences());
     }
     
     public static PUser getUserProfile(  DB db, String pclient, String userName ) {
@@ -111,5 +110,5 @@ public class PUserDao {
         System.out.println("Time to retrieve with small file: " + (t2-t1)/1000.0f);
         //DBCursor cursor2 = userProfilesSmalls.findOne( new BasicDBObject( "_id.name", userName ) );
         return userProfile;                
-    }
+    }   
 }

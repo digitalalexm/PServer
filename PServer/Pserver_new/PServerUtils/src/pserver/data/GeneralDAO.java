@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
-*/
-
-/**
- * This class contains the global parameters that are needed to parameterize the algorithms and the API
  */
-package pserver.parameters;
+/**
+ * This class contains method that are useful for basic DAO operations like cleanup etc
+ */
+package pserver.data;
 
-import pserver.tools.BasicPServerLoger;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import java.util.ArrayList;
 
 /**
  *
  * @author alexm
  */
-public class Parameters {
-    /**
-     * This number defines how much features will be stored in every preference document
-     */
-    public static int NUM_OF_FEATURES_PER_PROFILE = 10000;
-    public static BasicPServerLoger logger = new BasicPServerLoger();
+public class GeneralDAO {
+    
+    public static void cleanUp( DBCollection collection, ArrayList<BasicDBObject> ids ) {
+        for( BasicDBObject doc : ids ) {
+            collection.remove(doc);
+        }
+    }
+    
 }

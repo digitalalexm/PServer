@@ -23,6 +23,7 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.mongodb.MongoException;
 import java.util.ArrayList;
 import static pserver.data.PUserDao.PREFERENCE_PROFILE_ID_INDEX;
 import static pserver.data.PUserDao.PREFERENCE_PROFILE_ID_NAME;
@@ -42,17 +43,34 @@ public class GeneralPreferenceDAO {
         int idx = 0;
         int counter = 0;
         removeAllPreferences(collection, name);
+        ArrayList<BasicDBObject> ids = new ArrayList<>();
         do {             
             int limit = Math.min(counter + Parameters.NUM_OF_FEATURES_PER_PROFILE, featurePreferences.size());
-            storePreferences(collection, name, featurePreferences, idx, counter, limit);
-            System.out.println( counter + "---" + limit );
+            try{ 
+                storePreferences(collection, name, featurePreferences, idx, counter, limit);
+            } catch (MongoException e ) {
+                Parameters.logger.error("Unable to save preferences" );
+                Parameters.logger.error( "Exception Message: "+ e.getMessage());
+                GeneralDAO.cleanUp(collection, ids);
+                throw e;
+            }
             counter += Parameters.NUM_OF_FEATURES_PER_PROFILE;            
             idx++;
         } while (counter < featurePreferences.size());
 
     }
 
-    public static void storePreferences(DBCollection collection, String name, ArrayList<PFeature> featurePreferences, int docIdx, int start, int end) {
+    /**
+     * 
+     * @param collection
+     * @param name
+     * @param featurePreferences
+     * @param docIdx
+     * @param start
+     * @param end
+     * @return the Id of the new document
+     */
+    public static BasicDBObject storePreferences(DBCollection collection, String name, ArrayList<PFeature> featurePreferences, int docIdx, int start, int end) {
         /*
          * Create de json document based on the template
          * { _id:{ name:"", idx:1 },
@@ -71,6 +89,7 @@ public class GeneralPreferenceDAO {
         }
         userJson.append(PREFERENCE_PROFILE_FEATURES, preferences);
         collection.save(userJson);
+        return userJson;
     }
 
     
