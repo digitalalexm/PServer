@@ -35,7 +35,7 @@ public class PServerTester {
         PUser user = new PUser();
         user.setName("some_user");
         ArrayList<PFeature> prefernces = new ArrayList<PFeature>();
-        for( int i = 0 ; i < 10000000; i ++ ) {
+        for( int i = 0 ; i < 100; i ++ ) {
             prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         user.setPreferences(prefernces);
@@ -52,7 +52,7 @@ public class PServerTester {
             if( i % 2 == 0 ){
                 continue;
             }
-            prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
+            updatePrefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         
         PUserDao.updateUserProfile(db, "some_client", user.getName(), updatePrefernces, true );

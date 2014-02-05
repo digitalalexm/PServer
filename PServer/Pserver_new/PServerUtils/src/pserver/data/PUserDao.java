@@ -71,44 +71,11 @@ public class PUserDao {
     }
     
     public static void updateUserProfile( DB db, String pclient, String userName, ArrayList<PFeature> values, boolean mustInc ){
-        GeneralPreferenceDAO.updatePreferences(userProfiles, user.getName(), user.getPreferences());
+        DBCollection userProfiles = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient );        
+        GeneralPreferenceDAO.updatePreferences(userProfiles, userName, values, mustInc);
     }
     
     public static PUser getUserProfile(  DB db, String pclient, String userName ) {
-        PUser userProfile = new PUser();
-        userProfile.setName(userName);
-        DBCollection userProfiles = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient );
-        DBCollection userProfilesSmalls = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient +"_smalls" );
-        long t1 = System.currentTimeMillis();
-        DBCursor cursor1 = userProfiles.find( new BasicDBObject( "_id", userName ) );
-        while( cursor1.hasNext() ) {
-            DBObject dobj = cursor1.next();
-            userProfile.setName( (String)dobj.get("_id") );
-            Set<String> keys = dobj.keySet();
-            for( String key : keys) {
-                /*if( key.equals(("_id"))) {
-                    System.out.println("_id 1");
-                    continue;
-                }
-                PFeature feature = new PFeature();
-                feature.setName(key);
-                feature.setValue((Double) dobj.get(key));  */              
-            }
-        }
-        long t2 = System.currentTimeMillis();
-        System.out.println("Time to retrieve with big file: " + (t2-t1)/1000.0f);
-        
-        t1 = System.currentTimeMillis();
-        DBCursor cursor2 = userProfilesSmalls.find( new BasicDBObject( "_id.name", userName ) );
-        while( cursor2.hasNext() ) {            
-            DBObject dobj = cursor2.next();
-            PFeature feature = new PFeature();
-            feature.setName((String)dobj.get("_id.feature"));
-            feature.setValue((Double) dobj.get("value"));
-        }
-        t2 = System.currentTimeMillis();
-        System.out.println("Time to retrieve with small file: " + (t2-t1)/1000.0f);
-        //DBCursor cursor2 = userProfilesSmalls.findOne( new BasicDBObject( "_id.name", userName ) );
-        return userProfile;                
+        return null;     
     }   
 }
