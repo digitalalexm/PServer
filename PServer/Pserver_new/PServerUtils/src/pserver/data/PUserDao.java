@@ -36,9 +36,9 @@ public class PUserDao {
     /*
      * the name of the collection that stores all the user profiles
      */
-    public static String COLLECTION_BASENAME_USER_PROFILES = "user_profiles";
+    public static String COLLECTION_USER_PROFILES = "UserProfiles";
     /*
-     * 
+     * the name of the fields of the documents that will store preferences
      */
     public static String PREFERENCE_PROFILE_ID_NAME = "name";
     public static String PREFERENCE_PROFILE_ID_INDEX = "idx";
@@ -56,7 +56,7 @@ public class PUserDao {
         /*
          * The name of all the collections are based on the name of the pserver client
          */
-        DBCollection userProfiles = db.getCollection(COLLECTION_BASENAME_USER_PROFILES + "_" + pclient );        
+        DBCollection userProfiles = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient );        
         /*
          * check id there are no indeces and if not craate them 
          */
@@ -64,7 +64,7 @@ public class PUserDao {
             createUserProfileIndeces( userProfiles );
         }        
         
-        GeneralDao.storePreferences(userProfiles, user.getName(), user.getPreferences());
+        GeneralPreferenceDAO.storeAllPreferences(userProfiles, user.getName(), user.getPreferences());
     }
 
     private static void createUserProfileIndeces( DBCollection userProfilesCollection ) {
@@ -74,8 +74,8 @@ public class PUserDao {
     public static PUser getUserProfile(  DB db, String pclient, String userName ) {
         PUser userProfile = new PUser();
         userProfile.setName(userName);
-        DBCollection userProfiles = db.getCollection(COLLECTION_BASENAME_USER_PROFILES + "_" + pclient );
-        DBCollection userProfilesSmalls = db.getCollection(COLLECTION_BASENAME_USER_PROFILES + "_" + pclient +"_smalls" );
+        DBCollection userProfiles = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient );
+        DBCollection userProfilesSmalls = db.getCollection(COLLECTION_USER_PROFILES + "_" + pclient +"_smalls" );
         long t1 = System.currentTimeMillis();
         DBCursor cursor1 = userProfiles.find( new BasicDBObject( "_id", userName ) );
         while( cursor1.hasNext() ) {

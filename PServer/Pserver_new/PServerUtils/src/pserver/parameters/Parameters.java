@@ -28,5 +28,5 @@ public class Parameters {
     /**
      * This number defines how much features will be stored in every preference document
      */
-    public static int NUM_OF_FEATURES_PER_PROFILE = 1000;
+    public static int NUM_OF_FEATURES_PER_PROFILE = 10000;
 }
