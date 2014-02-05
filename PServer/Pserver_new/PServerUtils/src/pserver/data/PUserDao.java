@@ -71,6 +71,10 @@ public class PUserDao {
         System.out.println("creating indeces");
     }
     
+    public static void UpdateUserProfile( DB db, String pclient, String userName, ArrayList<PFeature> values, boolean mustInc ){
+        
+    }
+    
     public static PUser getUserProfile(  DB db, String pclient, String userName ) {
         PUser userProfile = new PUser();
         userProfile.setName(userName);

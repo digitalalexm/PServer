@@ -22,6 +22,7 @@ package pserver.data;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import java.util.ArrayList;
 import static pserver.data.PUserDao.PREFERENCE_PROFILE_ID_INDEX;
 import static pserver.data.PUserDao.PREFERENCE_PROFILE_ID_NAME;
@@ -40,12 +41,8 @@ public class GeneralPreferenceDAO {
     public static void storeAllPreferences(DBCollection collection, String name, ArrayList<PFeature> featurePreferences) {
         int idx = 0;
         int counter = 0;
-        do {
-            /*
-             * Create de json document based on the template
-             * { _id:{ name:"", idx:1 },
-             *  preferences: [ feature :{ name: "", score:"" } ]
-             */            
+        removeAllPreferences(collection, name);
+        do {             
             int limit = Math.min(counter + Parameters.NUM_OF_FEATURES_PER_PROFILE, featurePreferences.size());
             storePreferences(collection, name, featurePreferences, idx, counter, limit);
             System.out.println( counter + "---" + limit );
@@ -76,6 +73,14 @@ public class GeneralPreferenceDAO {
         collection.save(userJson);
     }
 
+    
+    public static void updatePreferences(DBCollection collection, String name, ArrayList<PFeature> featurePreferences, boolean inc) {
+        int numOfDocuments = getNumberOfPreferenceDocuments(collection, name);
+        for( int i = 0; i < numOfDocuments; i ++){
+            
+        }
+    }
+    
     public static void removeAllPreferences(DBCollection collection, String name ) {
         collection.remove( new BasicDBObject("_id."+PREFERENCE_PROFILE_ID_NAME, name));
     }
@@ -85,9 +90,15 @@ public class GeneralPreferenceDAO {
     }
     
     public static int getNumberOfPreferenceDocuments(DBCollection collection, String name ) {
-        BasicDBObject query = new BasicDBObject("_id."+PREFERENCE_PROFILE_ID_NAME, name);
-        System.out.println("Query :" + query.toString());
-        return collection.find(query).count();
+        BasicDBObject query = new BasicDBObject("_id."+PREFERENCE_PROFILE_ID_NAME, name);                
+        int num = 0;
+        DBCursor cursor =collection.find(query);
+        try{            
+            num = cursor.count();            
+        } finally {
+            cursor.close();
+        }
+        return num;
     }
         
 }

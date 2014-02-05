@@ -39,7 +39,7 @@ public class PServerTester {
             prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         user.setPreferences(prefernces);
-        PUserDao.SetUserProfile(db, "some_client", user );
+        //PUserDao.SetUserProfile(db, "some_client", user );
         
         DBCollection col = db.getCollection(PUserDao.COLLECTION_USER_PROFILES + "_" + "some_client");
         DBObject obj = col.findOne( );
