@@ -18,15 +18,13 @@
 package pserver.pservlets;
 
 
+import PServer.util.VectorMap;
 import com.mongodb.DB;
-import java.util.HashMap;
  
-
-
 public interface PService {    
     public abstract String getMimeType();
     //this method will be called when the PServlet will be loaded
     public abstract void init( String[] params ) throws Exception;
     //the method is the job that the servlet must do
-    public abstract int service( HashMap<String, String> parameters, String[][] response, DB dbAccess );
+    public abstract int service( String clientName, VectorMap parameters, String[][] response, DB dbAccess );
 }

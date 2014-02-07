@@ -11,9 +11,8 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Map;
-import pserver.data.GeneralPreferenceDAO;
-import pserver.data.PUserDao;
+import pserver.data.FeatureAttributeDAO;
+import pserver.data.PUserDAO;
 import pserver.domain.PFeature;
 import pserver.domain.PUser;
 import pserver.parameters.Parameters;
@@ -28,10 +27,26 @@ public class PServerTester {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws UnknownHostException {
+        testAddFeatures();        
+    }
+    
+    private static void testAddFeatures() throws UnknownHostException{
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB( "mydb" );
+        ArrayList<PFeature> features = new ArrayList<PFeature>();
+        for( int i = 0 ;i < 10000000; i ++) {            
+            PFeature ph = new PFeature("ftr"+i, i, i);
+            features.add(ph);
+        }
+        FeatureAttributeDAO.setFeatures(db, "some_client",features );
+        Parameters.NUM_OF_FEATURES_PER_PROFILE = 11;
+    }
+    
+    private static void testAddUSerPreferences() throws UnknownHostException{
         MongoClient mclient = new MongoClient();
         DB db = mclient.getDB( "mydb" );
         
-        Parameters.NUM_OF_FEATURES_PER_PROFILE = 1000;
+        Parameters.NUM_OF_FEATURES_PER_PROFILE = 11;
         PUser user = new PUser();
         user.setName("some_user");
         ArrayList<PFeature> prefernces = new ArrayList<PFeature>();
@@ -39,9 +54,9 @@ public class PServerTester {
             prefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         user.setPreferences(prefernces);
-        PUserDao.SetUserProfile(db, "some_client", user );
+        PUserDAO.SetUserProfile(db, "some_client", user );
         
-        DBCollection col = db.getCollection(PUserDao.COLLECTION_USER_PROFILES + "_" + "some_client");
+        DBCollection col = db.getCollection(PUserDAO.COLLECTION_USER_PROFILES + "_" + "some_client");
         DBObject obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));
         
         System.out.println( obj.toString()  );
@@ -55,9 +70,9 @@ public class PServerTester {
             updatePrefernces.add( new PFeature( "ftr" + i, (float)Math.random(), 0.0f ));
         }
         
-        PUserDao.updateUserProfile(db, "some_client", user.getName(), updatePrefernces, true );
+        PUserDAO.updateUserProfile(db, "some_client", user.getName(), updatePrefernces, true );
         
-        obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));        
-        System.out.println( obj.toString()  );
+        //obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));        
+        //System.out.println( obj.toString()  );
     }
 }

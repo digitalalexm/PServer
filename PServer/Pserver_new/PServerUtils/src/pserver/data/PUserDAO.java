@@ -20,10 +20,7 @@ package pserver.data;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import java.util.ArrayList;
-import java.util.Set;
 import pserver.domain.PFeature;
 import pserver.domain.PUser;
 
@@ -31,7 +28,7 @@ import pserver.domain.PUser;
  *
  * @author alexm
  */
-public class PUserDao {
+public class PUserDAO {
     /*
      * the name of the collection that stores all the user profiles
      */
@@ -39,11 +36,11 @@ public class PUserDao {
     /*
      * the name of the fields of the documents that will store preferences
      */
-    public static String PREFERENCE_PROFILE_ID_NAME = "name";
-    public static String PREFERENCE_PROFILE_ID_INDEX = "idx";
-    public static String PREFERENCE_PROFILE_FEATURES = "features";
-    public static String PREFERENCE_PROFILE_FEATURE_NAME = "name";
-    public static String PREFERENCE_PROFILE_FEATURE_VALUE = "value";
+    public static String PREFERENCE_DOCUMENT_ID_NAME = "name";
+    public static String PREFERENCE_DOCUMENT_ID_INDEX = "idx";
+    public static String PREFERENCE_DOCUMENT_FEATURES = "features";
+    public static String PREFERENCE_DOCUMENT_FEATURE_NAME = "name";
+    public static String PREFERENCE_DOCUMENT_FEATURE_VALUE = "value";
     
     /**
      * 
@@ -61,13 +58,15 @@ public class PUserDao {
          */
         if( userProfiles.getIndexInfo().isEmpty() == true ) {
             createUserProfileIndeces( userProfiles );
-        }        
+        }                
         GeneralPreferenceDAO.removeAllPreferences(userProfiles,  user.getName());
-        GeneralPreferenceDAO.storeAllPreferences(userProfiles, user.getName(), user.getPreferences());
+        GeneralPreferenceDAO.storeAllPreferences(userProfiles, user.getName(), user.getPreferences(), 0);
     }
 
     private static void createUserProfileIndeces( DBCollection userProfilesCollection ) {
-        userProfilesCollection.createIndex( new BasicDBObject("_id."+PREFERENCE_PROFILE_ID_NAME,1));
+        userProfilesCollection.createIndex( new BasicDBObject("_id."+PREFERENCE_DOCUMENT_ID_NAME,1));
+        userProfilesCollection.createIndex( new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES+"."+PREFERENCE_DOCUMENT_FEATURE_NAME,1));
+        userProfilesCollection.createIndex( new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES+"."+PREFERENCE_DOCUMENT_FEATURE_VALUE,1));
     }
     
     public static void updateUserProfile( DB db, String pclient, String userName, ArrayList<PFeature> values, boolean mustInc ){
