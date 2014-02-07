@@ -14,7 +14,7 @@
  * limitations under the License.
  * 
 */
-package PServer.util;
+package pserver.util;
 
 import java.util.*;
 
@@ -100,10 +100,10 @@ public class VectorMap {
     }
     public int indexOfVal(Object val, int startIdx) {
         //returns -1 if val not exist
-        for( int i = startIdx ; i < vals.size() ; i ++ ) {
+        for( int i = startIdx ; i < vals.size() ; i ++ ) {            
             if( vals.get(i).equals(val) )
                 return i;
-        }
+        }        
         return -1;
     }
     public Object getKey(int idx) {
@@ -125,6 +125,14 @@ public class VectorMap {
             val = null;
         }
         return val;
+    }
+    
+    public Object getVal(Object key) {        
+        int pos = indexOfKey(key, 0);
+        if( pos == -1 ) {            
+            return null;
+        }        
+        return getVal(pos);
     }
     
     //misc methods

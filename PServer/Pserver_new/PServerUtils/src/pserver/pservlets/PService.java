@@ -17,14 +17,12 @@
 
 package pserver.pservlets;
 
-
-import PServer.util.VectorMap;
+import pserver.util.VectorMap;
 import com.mongodb.DB;
  
-public interface PService {    
-    public abstract String getMimeType();
+public interface PService {       
     //this method will be called when the PServlet will be loaded
     public abstract void init( String[] params ) throws Exception;
     //the method is the job that the servlet must do
-    public abstract int service( String clientName, VectorMap parameters, String[][] response, DB dbAccess );
+    public abstract PServiceResult service(String clientName, VectorMap parameters, DB dbAccess);
 }

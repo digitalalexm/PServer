@@ -31,6 +31,12 @@ public class PAttribute {
         value = defValue = null;        
     }
 
+    public PAttribute( String name, String defValue, String value ) {
+        this.name = name;
+        this.value = value;
+        this.defValue = defValue;
+    }
+    
     public PAttribute( String name, String value ) {
         this.name = name;
         this.value = defValue = value;
