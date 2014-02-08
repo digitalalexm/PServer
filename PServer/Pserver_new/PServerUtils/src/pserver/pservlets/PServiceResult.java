@@ -4,6 +4,8 @@
  */
 package pserver.pservlets;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author alexm
@@ -17,7 +19,8 @@ public class PServiceResult {
     private int returnCode;
     private String errorMessage;    
     private PThread pThread;
-    private String[][] result;
+    private ArrayList<String> resultHeaders;
+    private ArrayList<ArrayList<String>> result;
     
     public PServiceResult(){
         returnCode = STATUS_OK;
@@ -71,15 +74,29 @@ public class PServiceResult {
     /**
      * @return the result
      */
-    public String[][] getResult() {
+    public ArrayList<ArrayList<String>> getResult() {
         return result;
     }
 
     /**
      * @param result the result to set
      */
-    public void setResult(String[][] result) {
+    public void setResult(ArrayList<ArrayList<String>> result) {
         this.result = result;
+    }
+
+    /**
+     * @return the resultHeaders
+     */
+    public ArrayList<String> getResultHeaders() {
+        return resultHeaders;
+    }
+
+    /**
+     * @param resultHeaders the resultHeaders to set
+     */
+    public void setResultHeaders(ArrayList<String> resultHeaders) {
+        this.resultHeaders = resultHeaders;
     }
     
 }

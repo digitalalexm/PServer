@@ -34,7 +34,7 @@ public class PServerTester {
      */
     public static void main(String[] args) throws UnknownHostException {
         testpers();
-        testAttr();
+        //testAttr();
     }
     
     private static void testAddFeatures() throws UnknownHostException{
@@ -123,12 +123,29 @@ public class PServerTester {
         for( int i = 0 ; i < 100; i ++) {
             parameters.add("pftr" + i, "2");
         }
+        parameters.add("Otherpftr" + 0, "2");
+        parameters.add("Otherpftr" + 1, "2");
+        parameters.add("Otherpftr" + 3, "2");
+        parameters.add("Otherpftr" + 4, "2");
         parameters.add("com", "addftr");
         resault = pers.service(clientname, parameters, db);
         if( resault.getReturnCode() != PServiceResult.STATUS_OK) {
             System.out.println("wroooong");
             return;
         }        
+        
+        parameters = new VectorMap(1);
+        parameters.add("com", "getdef");
+        parameters.add("ftr", "Other*");
+        parameters.add("ftr", "pftr1");
+        resault = pers.service(clientname, parameters, db);
+        ArrayList<String> header = resault.getResultHeaders();
+        ArrayList<ArrayList<String>> results = resault.getResult();
+        System.out.println( header.get(0) + "---" + header.get(1));
+        for( ArrayList<String> attribute : results ) {
+            System.out.println( attribute.get(0) + "---" + attribute.get(1) );
+        }
+        
     }
 
     private static void testAttr() throws UnknownHostException {
@@ -159,11 +176,26 @@ public class PServerTester {
         for( int i = 0 ; i < 100; i ++) {
             parameters.add("pAttr" + i, "2");
         }
+        parameters.add("other1" , "a2");
+        parameters.add("other2" , "b2");
+        
         parameters.add("com", "addAttr");
         resault = pers.service(clientname, parameters, db);
         if( resault.getReturnCode() != PServiceResult.STATUS_OK) {
             System.out.println("wroooong");
             return;
         }      
+        
+        parameters = new VectorMap(1);
+        parameters.add("com", "getattrdef");
+        parameters.add("attr", "pAttr*");
+        parameters.add("attr", "other2");
+        resault = pers.service(clientname, parameters, db);
+        ArrayList<String> header = resault.getResultHeaders();
+        ArrayList<ArrayList<String>> results = resault.getResult();
+        System.out.println( header.get(0) + "---" + header.get(1));
+        for( ArrayList<String> attribute : results ) {
+            System.out.println( attribute.get(0) + "---" + attribute.get(1) );
+        }
     }
 }
