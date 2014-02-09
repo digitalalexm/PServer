@@ -32,14 +32,14 @@ public class FeatureAttributeDAO {
     public static final String ATTRIBUTE_DOCUMENT_DEFAULT_VALUE = "def_value";
 
     public static void setFeatures(DB db, String pclient, ArrayList<PFeature> features) {
-        DBCollection featureCollection = db.getCollection(COLLECTION_FEATURES + "_" + pclient);
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
         for (PFeature feature : features) {
             featureCollection.save(new BasicDBObject("_id", feature.getName()).append(FEATURE_DOCUMENT_DEFAULT_VALUE, feature.getDefValue()));
         }
     }
 
     public static Double getFeatureDefValue(DB db, String pclient, String featureName) {
-        DBCollection featureCollection = db.getCollection(COLLECTION_FEATURES + "_" + pclient);
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
         DBObject dbobj = featureCollection.findOne(new BasicDBObject("_id", featureName));        
         if( dbobj != null ) {
             return (Double) dbobj.get(FEATURE_DOCUMENT_DEFAULT_VALUE);
@@ -50,7 +50,7 @@ public class FeatureAttributeDAO {
     
     public static ArrayList<PEntry<String, Double>> getFeatureDefValues(DB db, String pclient, String regEx) {
         ArrayList<PEntry<String, Double>> defValues = new ArrayList<PEntry<String, Double>>();
-        DBCollection featureCollection = db.getCollection(COLLECTION_FEATURES + "_" + pclient);
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
         DBCursor cursor = featureCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));
         try {
             while (cursor.hasNext()) {
@@ -67,14 +67,14 @@ public class FeatureAttributeDAO {
     }
     
     public static void setAttributes(DB db, String pclient, ArrayList<PAttribute> attributes) {
-        DBCollection attributeCollection = db.getCollection(COLLECTION_ATTRIBUTES + "_" + pclient);
+        DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         for (PAttribute attribute : attributes) {
             attributeCollection.save(new BasicDBObject("_id", attribute.getName()).append(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE, attribute.getDefValue()));
         }
     }
 
     public static String getAttributeDefValue(DB db, String pclient, String attributeName) {
-        DBCollection attributeCollection = db.getCollection(COLLECTION_ATTRIBUTES + "_" + pclient);
+        DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         DBObject dbobj = attributeCollection.findOne(new BasicDBObject("_id", attributeName));        
         if( dbobj != null ) {
             return (String) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
@@ -85,7 +85,7 @@ public class FeatureAttributeDAO {
 
     public static ArrayList<PEntry<String, String>> getAttributeDefValues(DB db, String pclient, String regEx) {
         ArrayList<PEntry<String, String>> defValues = new ArrayList<PEntry<String, String>>();
-        DBCollection attributeCollection = db.getCollection(COLLECTION_ATTRIBUTES + "_" + pclient);
+        DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         DBCursor cursor = attributeCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));
         try {
             while (cursor.hasNext()) {

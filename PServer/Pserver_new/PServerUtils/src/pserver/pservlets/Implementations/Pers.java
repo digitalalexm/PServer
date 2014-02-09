@@ -7,11 +7,13 @@ package pserver.pservlets.Implementations;
 import pserver.util.VectorMap;
 import com.mongodb.DB;
 import java.util.ArrayList;
+import java.util.Collection;
 import pserver.data.FeatureAttributeDAO;
 import pserver.domain.PAttribute;
 import pserver.domain.PFeature;
 import pserver.pservlets.PService;
 import pserver.pservlets.PServiceResult;
+import pserver.util.CollectionCleaner;
 import pserver.util.PEntry;
 
 /**
@@ -39,13 +41,14 @@ public class Pers implements PService {
             resault = execPersAddAttr(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("getattrdef")) {
             resault = execPersGetAttrDef(clientName, parameters, db);
+        } else if (com.equalsIgnoreCase("remattr")) {  //remove attributes
         } else if (com.equalsIgnoreCase("addftr")) {       //add new feature(s)            
             resault = execPersAddFtr(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("getdef") || com.equalsIgnoreCase("getftrdef")) {  //get ftr(s) AND def val(s)                    
             resault = execPersGetFtrDef(clientName, parameters, db);
-        } else if (com.equalsIgnoreCase("remftr")) {  //remove feature(s)            
-        } else if (com.equalsIgnoreCase("remattr")) {  //remove attributes                               
+        } else if (com.equalsIgnoreCase("remftr")) {  //remove feature(s)                    
         } else if (com.equalsIgnoreCase("setusr")) {  //add AND update user            
+            resault = execPersSetUsr(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("incval")) {  //increment numeric values                             
         } else if (com.equalsIgnoreCase("getusrs")) {  //get feature values for a user            
         } else if (com.equalsIgnoreCase("getusr") || com.equalsIgnoreCase("getusrftr")) {  //get feature values for a user
@@ -79,7 +82,7 @@ public class Pers implements PService {
         for (int i = 0; i < queryParam.size(); i++) {
             PAttribute updateAttribute = new PAttribute();
             String key = (String) queryParam.getKey(i);
-            if (key.equals("com")) {
+            if (key.equalsIgnoreCase("com")) {
                 continue;
             }
             updateAttribute.setName(key);
@@ -102,9 +105,9 @@ public class Pers implements PService {
         ArrayList<ArrayList<String>> defValues = new ArrayList< ArrayList<String>>();
         for (int i = 0; i < queryParam.size(); i++) {
             String key = (String) queryParam.getKey(i);
-            if (key.equals("com")) {
+            if (key.equalsIgnoreCase("com")) {
                 continue;
-            } else if (key.equals("attr")) {
+            } else if (key.equalsIgnoreCase("attr")) {
                 String query = (String) queryParam.getVal(i);
                 if (query.contains("*") == false) {
                     ArrayList<String> defValue = new ArrayList<String>();
@@ -116,11 +119,11 @@ public class Pers implements PService {
                     defValue.add(value);
                     defValues.add(defValue);
                 } else {
-                    ArrayList<PEntry<String,String>> values = FeatureAttributeDAO.getAttributeDefValues(db, clientName, query);
+                    ArrayList<PEntry<String, String>> values = FeatureAttributeDAO.getAttributeDefValues(db, clientName, query);
                     if (values == null) {
                         continue;
                     }
-                    for (PEntry<String,String> value : values) {
+                    for (PEntry<String, String> value : values) {
                         ArrayList<String> tmpArray = new ArrayList<String>();
                         tmpArray.add(value.getKey());
                         tmpArray.add(value.getValue());
@@ -145,7 +148,7 @@ public class Pers implements PService {
         for (int i = 0; i < queryParam.size(); i++) {
             PFeature updateFeature = new PFeature();
             String key = (String) queryParam.getKey(i);
-            if (key.equals("com")) {
+            if (key.equalsIgnoreCase("com")) {
                 continue;
             }
             updateFeature.setName(key);
@@ -174,14 +177,14 @@ public class Pers implements PService {
         ArrayList<ArrayList<String>> defValues = new ArrayList< ArrayList<String>>();
         for (int i = 0; i < queryParam.size(); i++) {
             String key = (String) queryParam.getKey(i);
-            if (key.equals("com")) {
+            if (key.equalsIgnoreCase("com")) {
                 continue;
-            } else if (key.equals("ftr")) {
+            } else if (key.equalsIgnoreCase("ftr")) {
                 String query = (String) queryParam.getVal(i);
                 if (query.contains("*") == false) {
                     ArrayList<String> defValue = new ArrayList<String>();
                     Double dValue = FeatureAttributeDAO.getFeatureDefValue(db, clientName, query);
-                    String value = (dValue != null? "" + dValue :null);
+                    String value = (dValue != null ? "" + dValue : null);
                     if (value == null) {
                         continue;
                     }
@@ -189,11 +192,11 @@ public class Pers implements PService {
                     defValue.add(value);
                     defValues.add(defValue);
                 } else {
-                    ArrayList<PEntry<String,Double>> values = FeatureAttributeDAO.getFeatureDefValues(db, clientName, query);
+                    ArrayList<PEntry<String, Double>> values = FeatureAttributeDAO.getFeatureDefValues(db, clientName, query);
                     if (values == null) {
                         continue;
                     }
-                    for (PEntry<String,Double> value : values) {
+                    for (PEntry<String, Double> value : values) {
                         ArrayList<String> tmpArray = new ArrayList<String>();
                         tmpArray.add(value.getKey());
                         tmpArray.add(value.getValue() + "");
@@ -209,6 +212,94 @@ public class Pers implements PService {
         }
         results.setResultHeaders(resultHeaders);
         results.setResult(defValues);
+        return results;
+    }
+
+    private PServiceResult execPersSetUsr(String clientName, VectorMap queryParam, DB db) {
+        PServiceResult results = new PServiceResult();
+        String userName = null;
+        ArrayList<PAttribute> attributes = new ArrayList<PAttribute>();
+        ArrayList<PFeature> features = new ArrayList<PFeature>();
+        for (int i = 0; i < queryParam.size(); i++) {
+            String key = (String) queryParam.getKey(i);
+            if (key.equalsIgnoreCase("com")) {
+                continue;
+            } else if (key.equalsIgnoreCase("usr")) {
+                userName = (String) queryParam.getVal(i);
+            } else if (key.startsWith("attr_")) {
+                PAttribute attr = new PAttribute();
+                key = key.substring(5);       
+                String sValue = (String) queryParam.getVal(i);
+                attr.setValue(sValue);
+                if (key.contains("*") == false) {
+                    String tmpSValue = FeatureAttributeDAO.getAttributeDefValue(db, clientName, key);
+                    if (tmpSValue == null) {
+                        results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                        results.setErrorMessage("The attribute " + key + " does not exists");
+                        return results;
+                    } else {
+                        attr.setName(key);
+                        attr.setDefValue(tmpSValue);
+                    }
+                    attributes.add(attr);
+                } else {                    
+                    ArrayList<PEntry<String, String>> attributesEntries = FeatureAttributeDAO.getAttributeDefValues(db, clientName, key);                    
+                    if (attributesEntries.isEmpty()) {
+                        results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                        results.setErrorMessage("The attribute pattern " + key + " returns no attributes");
+                        return results;
+                    }
+                    for (PEntry<String, String> value : attributesEntries) {
+                        PAttribute attrToAdd = new PAttribute();
+                        attrToAdd.setName(value.getKey());
+                        attrToAdd.setValue(attr.getValue());
+                        attrToAdd.setDefValue(value.getValue());
+                        attributes.add(attrToAdd);
+                    }
+                } 
+            } else {
+                PFeature ftr = new PFeature();
+                if (key.startsWith("ftr_")) {                    
+                    key = key.substring(4);
+                }
+                try {
+                    Double dValue = Double.parseDouble((String) queryParam.getVal(i));
+                    ftr.setValue(dValue);
+                } catch (NumberFormatException e) {
+                    results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                    results.setErrorMessage("The feature " + key + " is set to have a value that is not a number");
+                    return results;
+                }
+                if (key.contains("*") == false) {
+                    Double dValue = FeatureAttributeDAO.getFeatureDefValue(db, clientName, key);
+                    if (dValue == null) {
+                        results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                        results.setErrorMessage("The feature " + key + " does not exists");
+                        return results;
+                    } else {
+                        ftr.setName(key);
+                        ftr.setDefValue(dValue);
+                    }
+                    features.add(ftr);
+                } else {                    
+                    ArrayList<PEntry<String, Double>> featureEntries = FeatureAttributeDAO.getFeatureDefValues(db, clientName, key);                    
+                    if (featureEntries.isEmpty()) {
+                        results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                        results.setErrorMessage("The feature pattern " + key + " returns no features");
+                        return results;
+                    }
+                    for (PEntry<String, Double> value : featureEntries) {
+                        PFeature ftrToAdd = new PFeature();
+                        ftrToAdd.setName(value.getKey());
+                        ftrToAdd.setValue(ftr.getValue());
+                        ftrToAdd.setDefValue(value.getValue());
+                        features.add(ftrToAdd);
+                    }
+                }                
+            }
+        }
+        CollectionCleaner.cleanAttributesCollection(attributes);
+        CollectionCleaner.cleanFeatureCollection(features);        
         return results;
     }
 }
