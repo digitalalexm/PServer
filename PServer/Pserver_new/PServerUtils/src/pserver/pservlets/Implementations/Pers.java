@@ -7,13 +7,14 @@ package pserver.pservlets.Implementations;
 import pserver.util.VectorMap;
 import com.mongodb.DB;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import pserver.data.FeatureAttributeDAO;
+import pserver.data.PUserDAO;
 import pserver.domain.PAttribute;
 import pserver.domain.PFeature;
 import pserver.pservlets.PService;
 import pserver.pservlets.PServiceResult;
-import pserver.util.CollectionCleaner;
+import pserver.util.CollectionManager;
 import pserver.util.PEntry;
 
 /**
@@ -50,8 +51,10 @@ public class Pers implements PService {
         } else if (com.equalsIgnoreCase("setusr")) {  //add AND update user            
             resault = execPersSetUsr(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("incval")) {  //increment numeric values                             
-        } else if (com.equalsIgnoreCase("getusrs")) {  //get feature values for a user            
+        } else if (com.equalsIgnoreCase("getusrs")) {  //get the names of the users that are installed in the database
+            resault = execPersGetUsrs(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("getusr") || com.equalsIgnoreCase("getusrftr")) {  //get feature values for a user
+            resault = execPersGetUsrProfile(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("getusrattr")) {  //get feature values for a user            
         } else if (com.equalsIgnoreCase("sqlusr") || com.equalsIgnoreCase("sqlftrusr")) {  //specify conditions AND select users            
         } else if (com.equalsIgnoreCase("sqlattrusr")) {
@@ -160,7 +163,7 @@ public class Pers implements PService {
                 updatePeatures.add(updateFeature);
             } catch (NumberFormatException e) {
                 results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
-                results.setErrorMessage("Systax Error: A feature value parameter is not a number");
+                results.setErrorMessage("A feature value parameter is not a number");
             }
 
         }
@@ -228,7 +231,7 @@ public class Pers implements PService {
                 userName = (String) queryParam.getVal(i);
             } else if (key.startsWith("attr_")) {
                 PAttribute attr = new PAttribute();
-                key = key.substring(5);       
+                key = key.substring(5);
                 String sValue = (String) queryParam.getVal(i);
                 attr.setValue(sValue);
                 if (key.contains("*") == false) {
@@ -242,8 +245,11 @@ public class Pers implements PService {
                         attr.setDefValue(tmpSValue);
                     }
                     attributes.add(attr);
-                } else {                    
-                    ArrayList<PEntry<String, String>> attributesEntries = FeatureAttributeDAO.getAttributeDefValues(db, clientName, key);                    
+                } else {
+                    if (key.trim().equals("*") == true) {
+                        key = "";
+                    }
+                    ArrayList<PEntry<String, String>> attributesEntries = FeatureAttributeDAO.getAttributeDefValues(db, clientName, key);
                     if (attributesEntries.isEmpty()) {
                         results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
                         results.setErrorMessage("The attribute pattern " + key + " returns no attributes");
@@ -256,10 +262,10 @@ public class Pers implements PService {
                         attrToAdd.setDefValue(value.getValue());
                         attributes.add(attrToAdd);
                     }
-                } 
+                }
             } else {
                 PFeature ftr = new PFeature();
-                if (key.startsWith("ftr_")) {                    
+                if (key.startsWith("ftr_")) {
                     key = key.substring(4);
                 }
                 try {
@@ -271,6 +277,9 @@ public class Pers implements PService {
                     return results;
                 }
                 if (key.contains("*") == false) {
+                    if (key.trim().equals("*") == true) {
+                        key = "";
+                    }
                     Double dValue = FeatureAttributeDAO.getFeatureDefValue(db, clientName, key);
                     if (dValue == null) {
                         results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
@@ -281,8 +290,8 @@ public class Pers implements PService {
                         ftr.setDefValue(dValue);
                     }
                     features.add(ftr);
-                } else {                    
-                    ArrayList<PEntry<String, Double>> featureEntries = FeatureAttributeDAO.getFeatureDefValues(db, clientName, key);                    
+                } else {
+                    ArrayList<PEntry<String, Double>> featureEntries = FeatureAttributeDAO.getFeatureDefValues(db, clientName, key);
                     if (featureEntries.isEmpty()) {
                         results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
                         results.setErrorMessage("The feature pattern " + key + " returns no features");
@@ -295,11 +304,111 @@ public class Pers implements PService {
                         ftrToAdd.setDefValue(value.getValue());
                         features.add(ftrToAdd);
                     }
-                }                
+                }
             }
         }
-        CollectionCleaner.cleanAttributesCollection(attributes);
-        CollectionCleaner.cleanFeatureCollection(features);        
+        if (userName == null) {
+            results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+            results.setErrorMessage("There is no 'usr' parameter");
+            return results;
+        }
+        CollectionManager.cleanAttributesCollection(attributes);
+        CollectionManager.cleanFeatureCollection(features);
+        PUserDAO.updateUserAttributes(db, clientName, userName, attributes);
+        PUserDAO.updateUserProfile(db, clientName, userName, features, false);
+        return results;
+    }
+
+    private PServiceResult execPersGetUsrs(String clientName, VectorMap queryParam, DB db) {
+        PServiceResult results = new PServiceResult();
+        String userName = "";
+        for (int i = 0; i < queryParam.size(); i++) {
+            String key = (String) queryParam.getKey(i);
+            if (key.equalsIgnoreCase("com") == true) {
+                continue;
+            } else if (key.equalsIgnoreCase("whr") == true) {
+                userName = (String) queryParam.getVal(i);
+            } else {
+                results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                results.setErrorMessage("The key " + key + " is no a valid parameter");
+                return results;
+            }
+        }        
+        if( userName.trim().equals("*") == true ) {
+            userName = "";
+        }        
+        List<String> userNames = PUserDAO.getUsers(db, clientName, userName);
+        ArrayList<ArrayList<String>> resultRedords = new ArrayList<>();
+        for (String uName : userNames) {
+            ArrayList<String> newArray = new ArrayList<>();
+            newArray.add(uName);
+            resultRedords.add(newArray);
+        }
+        ArrayList<String> headers = new ArrayList<>();
+        headers.add("User Name");
+        results.setResultHeaders(headers);
+        results.setResult(resultRedords);
+        return results;
+    }
+
+    private PServiceResult execPersGetUsrProfile(String clientName, VectorMap queryParam, DB db) {
+        PServiceResult results = new PServiceResult();
+        String userName = null;
+        String ftr = "";
+        Integer num = null;
+        boolean sortAsc = true;
+        for (int i = 0; i < queryParam.size(); i++) {
+            String key = (String) queryParam.getKey(i);
+            if (key.equalsIgnoreCase("com") == true) {
+                continue;
+            } else if (key.equalsIgnoreCase("usr") == true) {
+                userName = (String) queryParam.getVal(i);
+            } else if (key.equalsIgnoreCase("ftr") == true) {
+                ftr = (String) queryParam.getVal(i);
+                if (key.trim().equals("*") == true) {
+                    key = "";
+                }
+            } else if (key.equalsIgnoreCase("num") == true) {
+                try {
+                    num = Integer.parseInt((String) queryParam.getVal(i));
+                } catch (NumberFormatException e) {
+                    results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                    results.setErrorMessage("The 'num' value parameter is not an integer");
+                    return results;
+                }
+            } else if (key.equalsIgnoreCase("srt") == true) {
+                String srtParam = (String) queryParam.getVal(i);
+                if (srtParam.equalsIgnoreCase("asc") == true) {
+                    sortAsc = true;
+                } else if (srtParam.equalsIgnoreCase("desc") == true) {
+                    sortAsc = false;
+                } else {
+                    results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                    results.setErrorMessage("The 'srt' parameter takes only the values 'asc' and 'desc'");
+                    return results;
+                }
+            } else {
+                results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                results.setErrorMessage("The key " + key + " is no a valid parameter");
+                return results;
+            }
+        }
+        if( num == null ) {
+            num = 0;
+        }
+        List<PFeature> profile = PUserDAO.getUserProfile(db, clientName, userName, ftr, num, sortAsc);
+        ArrayList<ArrayList<String>> resultData = new ArrayList<>();
+        for( PFeature ftrp : profile ) {
+            ArrayList<String> row = new ArrayList<>(2);
+            row.add(ftrp.getName());
+            row.add(ftrp.getValue()+"");
+            resultData.add(row);
+        }
+        results.setResult(resultData);
+        ArrayList<String> header = new ArrayList<>();
+        header.add("Feature Name");
+        header.add("Feature Value");
+        results.setResultHeaders(header);
         return results;
     }
 }

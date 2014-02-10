@@ -4,14 +4,12 @@
  */
 package pserver.data;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import pserver.domain.PAttribute;
 import pserver.domain.PFeature;
 import pserver.util.PEntry;
@@ -49,6 +47,9 @@ public class FeatureAttributeDAO {
     }
     
     public static ArrayList<PEntry<String, Double>> getFeatureDefValues(DB db, String pclient, String regEx) {
+        if( regEx.trim().equals("*")) {
+            regEx = "";
+        }
         ArrayList<PEntry<String, Double>> defValues = new ArrayList<PEntry<String, Double>>();
         DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
         DBCursor cursor = featureCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));
@@ -84,6 +85,9 @@ public class FeatureAttributeDAO {
     }
 
     public static ArrayList<PEntry<String, String>> getAttributeDefValues(DB db, String pclient, String regEx) {
+        if( regEx.trim().equals("*")) {
+            regEx = "";
+        }
         ArrayList<PEntry<String, String>> defValues = new ArrayList<PEntry<String, String>>();
         DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         DBCursor cursor = attributeCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));

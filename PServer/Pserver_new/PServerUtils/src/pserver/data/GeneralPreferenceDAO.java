@@ -24,6 +24,7 @@
  */
 package pserver.data;
 
+import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -31,7 +32,10 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_ID_INDEX;
 import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_ID_NAME;
 import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURES;
@@ -95,6 +99,10 @@ public class GeneralPreferenceDAO {
     
     public static void updatePreferences(DBCollection collection, String userName, ArrayList<PFeature> featurePreferences, boolean mustInc) {
         int numOfDocuments = getNumberOfPreferenceDocuments(collection, userName);
+        if( numOfDocuments == 0 ){
+            storeAllPreferences(collection, userName, featurePreferences, 0);
+            return;
+        }
         ArrayList<PFeature> localFeaturePreferences = new ArrayList<>(featurePreferences);
         for( int i = 0; i < numOfDocuments; i ++){
             BasicDBObject id = new BasicDBObject(PREFERENCE_DOCUMENT_ID_NAME, userName).append(PREFERENCE_DOCUMENT_ID_INDEX, i);
@@ -171,6 +179,54 @@ public class GeneralPreferenceDAO {
                     break;
                 }
             }
+        }
+    }
+
+    static List<PFeature> getProfile(DBCollection userProfiles, String userName, String ftrRegEx, int num, boolean sortAsc) {        
+        int numOfDocuments = getNumberOfPreferenceDocuments(userProfiles, userName);
+        if( numOfDocuments == 0 ){
+            return new LinkedList<>();
+        }
+        LinkedList<PFeature> profile = new LinkedList<>();        
+        for( int i = 0 ; i < numOfDocuments; i++ ) {            
+            BasicDBObject firtsOp = new BasicDBObject("$match", new BasicDBObject("_id."+PREFERENCE_DOCUMENT_ID_NAME,userName).append("_id."+ PREFERENCE_DOCUMENT_ID_INDEX, i)
+                    .append( PREFERENCE_DOCUMENT_FEATURES + "." + PREFERENCE_DOCUMENT_FEATURE_NAME, new BasicDBObject("$regex",ftrRegEx)));
+            BasicDBObject secondOp = new BasicDBObject( "$unwind", "$"+ PREFERENCE_DOCUMENT_FEATURES);
+            BasicDBObject thirdOp = new BasicDBObject( "$match", new BasicDBObject( PREFERENCE_DOCUMENT_FEATURES+"."+PREFERENCE_DOCUMENT_FEATURE_NAME, new BasicDBObject ("$regex",ftrRegEx)));
+            BasicDBObject fourthOp = null;
+            if( sortAsc ) {
+                fourthOp = new BasicDBObject("$sort", new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES + "." + PREFERENCE_DOCUMENT_FEATURE_VALUE, 1));
+            } else {
+                fourthOp = new BasicDBObject("$sort", new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES + "." + PREFERENCE_DOCUMENT_FEATURE_VALUE, -1));
+            }
+            AggregationOutput output = null;
+            if( num <= 0 ) {
+                output = userProfiles.aggregate( firtsOp, secondOp, thirdOp, fourthOp );
+            } else {
+                BasicDBObject fifthOp = new BasicDBObject("$limit", num );
+                output = userProfiles.aggregate( firtsOp, secondOp, thirdOp, fourthOp, fifthOp );
+            }
+            Iterable<DBObject> it = output.results();
+            Iterator<DBObject> iit = it.iterator();
+            while( iit.hasNext()  ) {
+                BasicDBObject doc = (BasicDBObject) iit.next().get(PREFERENCE_DOCUMENT_FEATURES);
+                String ftrName = doc.getString(PREFERENCE_DOCUMENT_FEATURE_NAME);
+                double ftrValue = doc.getDouble(PREFERENCE_DOCUMENT_FEATURE_VALUE);
+                PFeature ftr = new PFeature();
+                ftr.setName(ftrName);
+                ftr.setValue(ftrValue);                
+                profile.add(ftr);                
+            }
+        }
+        if( sortAsc == true ) {
+            Collections.sort(profile);
+        } else {
+            Collections.sort(profile, Collections.reverseOrder());
+        }
+        if( num <= 0 || profile.size() <= num ) {
+            return profile;
+        } else {            
+            return profile.subList(0, num);
         }
     }
         

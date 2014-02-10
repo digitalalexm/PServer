@@ -7,7 +7,7 @@
   <body bgcolor="#FFFFCC">
     <pre>-getusrftr or getusr
 template: pers?clnt=&lt;name|pass&gt;&amp;com=getusrftr&amp;usr=&lt;usr&gt;&amp;ftr=&lt;ftr_pattern&gt;[&amp;num=
-          &lt;num_pattern&gt;&amp;srt=&lt;order_pattern&gt;]
+          &lt;num_pattern&gt;&amp;srt=&lt;order_pattern&gt;&amp;cmp=&lt;comp_pattern&gt;]
           Order of query params is not important. Query params
           'num', 'srt'are optional. If omitted, 'num'
           defaults to '*', 'srt' defaults to 'desc'.
@@ -15,13 +15,14 @@ pattern : for feature, * | name[.*], where name is a path expression.
           For num, * | &lt;integer&gt;.
           For srt, asc | desc. For 1-&gt;10 use 'asc', for 10-&gt;1 use 'desc'.
 descript: for the specified user, the features matching the pattern
-          are found and sorted according to value (based on 'srt').
+          are found and sorted according to value (based on 'srt' and
+          'cmp'), and secondarily according to feature name (asc, A-&gt;Z) .
           Then the first &lt;num_pattern&gt; rows are selected (or all, if
           &lt;num_pattern&gt; is '*') and an XML answer is formed. If no
           feature in DB matches the pattern or if &lt;num_pattern&gt; &lt;=0
           or if user does not exist, the result will not have any
           'row' elements (200 OK will still be returned).
-          Note that 'srt' affect the sorting on value.
+          Note that 'srt' and 'cmp' affect the sorting on value.
           Note that in case a number of features matching the pattern
           have the same value, some of them may be part of the
           results, while others not. This depends on 'num', which

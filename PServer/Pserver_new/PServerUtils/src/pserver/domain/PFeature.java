@@ -20,7 +20,7 @@ package pserver.domain;
  *
  * @author alexm
  */
-public final class PFeature {
+public final class PFeature implements Comparable<PFeature>{
     
     private String name;    
     private double value;
@@ -59,5 +59,16 @@ public final class PFeature {
 
     public void setDefValue( double defValue ) {
         this.defValue = defValue;
+    }
+
+    @Override
+    public int compareTo(PFeature o) {
+        if( o.getValue() > this.getValue()) {
+            return -1;
+        } else if( o.getValue() < this.getValue()) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

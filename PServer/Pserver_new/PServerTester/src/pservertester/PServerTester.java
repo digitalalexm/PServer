@@ -11,6 +11,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import pserver.data.FeatureAttributeDAO;
 import pserver.data.PUserDAO;
 import pserver.domain.PFeature;
@@ -35,7 +36,9 @@ public class PServerTester {
     public static void main(String[] args) throws UnknownHostException {
         //testpers();
         //testAttr();
-        testsetUser();
+        //testsetUser();
+        //testgetUsers();
+        testgetUserProfile();
     }
 
     private static void testAddFeatures() throws UnknownHostException {
@@ -206,14 +209,57 @@ public class PServerTester {
         VectorMap parameters = new VectorMap(1);
         parameters.add("com", "setusr");
         parameters.add("attr_pAttr1", ""+ 3);
-        parameters.add("attr_pAttr2", ""+ 4);
-        parameters.add("attr_pAttr*", ""+ 5);
+        parameters.add("attr_pAttr2", ""+ 4);       
         parameters.add("ftr_pftr1", ""+ 4);
         parameters.add("ftr_pftr3", ""+ 4);
         parameters.add("Otherpftr*", ""+ 10);
+        parameters.add("usr", "Alex");
         //parameters.add("blabla*", ""+ 10);
         Pers pers = new Pers();
         PServiceResult resault = pers.service(clientname, parameters, db);
+        parameters.add("attr_pAttr*", ""+ 5);
+        resault = pers.service(clientname, parameters, db);
         System.out.println(resault.getErrorMessage());
+    }
+
+    private static void testgetUsers() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "getusrs");
+        parameters.add("whr", "*");
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        System.out.println( resault.getResultHeaders().get(0) );
+        for( List<String> res : resault.getResult()){
+            System.out.println( res.get(0) );
+        }
+    }
+
+    private static void testgetUserProfile() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "getusrftr");
+        //parameters.add("usr", "Alex");
+        //parameters.add("ftr", "Otherpftr3");
+        parameters.add("num", "3");
+        parameters.add("srt", "asc");
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        if( resault.getErrorMessage() == null ) {
+        ArrayList<ArrayList<String>> ret = resault.getResult();
+        for( ArrayList<String> row : ret ) {
+            String ftrName = row.get(0);
+            String ftrVal = row.get(1);
+            System.out.println(ftrName + "---"+ftrVal);
+        }
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }
+        /*System.out.println( resault.getResultHeaders().get(0) );
+        for( List<String> res : resault.getResult()){
+            System.out.println( res.get(0) );
+        }*/
     }
 }
