@@ -81,7 +81,7 @@ public class PServiceResult {
     /**
      * @param result the result to set
      */
-    public void setResult(ArrayList<ArrayList<String>> result) {
+    public void setResultData(ArrayList<ArrayList<String>> result) {
         this.result = result;
     }
 

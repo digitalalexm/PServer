@@ -16,10 +16,20 @@
  */
 package pserver.data;
 
+import com.mongodb.DB;
+
 /**
+ *
+ * the default document for the features is { _id:<feature_name>,
+ * def_value:<default value> } the default document for the attributes is {
+ * _id:<attribute_name>, def_value:<default value> }
  *
  * @author alexm
  */
-public class StereotypeDAO {
+public class SessionDAO {
+
+    public static long getLastSession(DB db, String clientName, String userName) {        
+        return 0;
+    }
     
 }

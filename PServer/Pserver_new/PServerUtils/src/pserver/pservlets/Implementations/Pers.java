@@ -7,10 +7,13 @@ package pserver.pservlets.Implementations;
 import pserver.util.VectorMap;
 import com.mongodb.DB;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import pserver.data.FeatureAttributeDAO;
 import pserver.data.PUserDAO;
+import pserver.data.SessionDAO;
 import pserver.domain.PAttribute;
+import pserver.domain.PDecayData;
 import pserver.domain.PFeature;
 import pserver.pservlets.PService;
 import pserver.pservlets.PServiceResult;
@@ -56,17 +59,18 @@ public class Pers implements PService {
         } else if (com.equalsIgnoreCase("getusr") || com.equalsIgnoreCase("getusrftr")) {  //get feature values for a user
             resault = execPersGetUsrProfile(clientName, parameters, db);
         } else if (com.equalsIgnoreCase("getusrattr")) {  //get feature values for a user            
-        } else if (com.equalsIgnoreCase("sqlusr") || com.equalsIgnoreCase("sqlftrusr")) {  //specify conditions AND select users            
-        } else if (com.equalsIgnoreCase("sqlattrusr")) {
+            resault = execPersGetUsrAttributes(clientName, parameters, db);
+        } else if (com.equalsIgnoreCase("addddt")) {  //add new decay data
+            resault = execPersAddDDT(clientName, parameters, db);
+        } else if (com.equalsIgnoreCase("addndt")) {  //add new numeric data            
+        } else if (com.equalsIgnoreCase("remddt")) {  //remove decay data
+        } else if (com.equalsIgnoreCase("sqlusr") || com.equalsIgnoreCase("sqlftrusr")) {  //specify conditions AND select users                    
         } else if (com.equalsIgnoreCase("remusr")) {  //remove user(s)            
         } else if (com.equalsIgnoreCase("setdcy")) {  //add AND update decay feature groups            
         } else if (com.equalsIgnoreCase("getdrt")) {  //get decay rate for a group            
-        } else if (com.equalsIgnoreCase("remdcy")) {  //remove decay feature groups            
-        } else if (com.equalsIgnoreCase("addddt")) {  //add new decay data            
-        } else if (com.equalsIgnoreCase("sqlddt")) {  //retrieve decay data under conditions            
-        } else if (com.equalsIgnoreCase("remddt")) {  //remove decay data            
-        } else if (com.equalsIgnoreCase("caldcy")) {  //calculate decay values for a user            
-        } else if (com.equalsIgnoreCase("addndt")) {  //add new numeric data            
+        } else if (com.equalsIgnoreCase("remdcy")) {  //remove decay feature groups                    
+        } else if (com.equalsIgnoreCase("sqlddt")) {  //retrieve decay data under conditions                    
+        } else if (com.equalsIgnoreCase("caldcy")) {  //calculate decay values for a user                    
         } else if (com.equalsIgnoreCase("sqlndt")) {  //retrieve numeric data under conditions            
         } else if (com.equalsIgnoreCase("remndt")) {  //remove numeric data            
         } else if (com.equalsIgnoreCase("getavg")) {  //calculate average values for a user            
@@ -141,7 +145,7 @@ public class Pers implements PService {
 
         }
         results.setResultHeaders(resultHeaders);
-        results.setResult(defValues);
+        results.setResultData(defValues);
         return results;
     }
 
@@ -164,6 +168,7 @@ public class Pers implements PService {
             } catch (NumberFormatException e) {
                 results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
                 results.setErrorMessage("A feature value parameter is not a number");
+                return results;
             }
 
         }
@@ -214,7 +219,7 @@ public class Pers implements PService {
 
         }
         results.setResultHeaders(resultHeaders);
-        results.setResult(defValues);
+        results.setResultData(defValues);
         return results;
     }
 
@@ -347,7 +352,7 @@ public class Pers implements PService {
         ArrayList<String> headers = new ArrayList<>();
         headers.add("User Name");
         results.setResultHeaders(headers);
-        results.setResult(resultRedords);
+        results.setResultData(resultRedords);
         return results;
     }
 
@@ -393,6 +398,11 @@ public class Pers implements PService {
                 return results;
             }
         }
+        if( userName == null) {
+            results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+            results.setErrorMessage("There is no 'usr' parameter");
+            return results;
+        }
         if( num == null ) {
             num = 0;
         }
@@ -404,11 +414,95 @@ public class Pers implements PService {
             row.add(ftrp.getValue()+"");
             resultData.add(row);
         }
-        results.setResult(resultData);
+        results.setResultData(resultData);
         ArrayList<String> header = new ArrayList<>();
         header.add("Feature Name");
         header.add("Feature Value");
         results.setResultHeaders(header);
+        return results;
+    }
+
+    private PServiceResult execPersGetUsrAttributes(String clientName, VectorMap queryParam, DB db) {
+        PServiceResult results = new PServiceResult();
+        String userName = null;
+        String attr = "";
+        for (int i = 0; i < queryParam.size(); i++) {
+            String key = (String) queryParam.getKey(i);
+            if (key.equalsIgnoreCase("com") == true) {
+                continue;
+            } else if (key.equalsIgnoreCase("usr") == true) {
+                userName = (String) queryParam.getVal(i);
+            } else if (key.equalsIgnoreCase("attr") == true) {
+                attr = (String) queryParam.getVal(i);
+            } else {
+                results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                results.setErrorMessage("The key " + key + " is no a valid parameter");
+                return results;
+            }
+        }        
+        if( userName == null) {
+            results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+            results.setErrorMessage("There is no 'usr' parameter");
+            return results;
+        }
+        if( attr.equals("*") == true ) {
+            attr = "";
+        }
+        List<PAttribute> attributes = PUserDAO.getUserAttributes(db, clientName, userName, attr );
+        ArrayList<ArrayList<String>> data = new ArrayList<>();
+        for( PAttribute pattr : attributes )  {
+            ArrayList<String> row = new ArrayList<>();
+            row.add(pattr.getName());
+            row.add(pattr.getValue());
+            data.add(row);
+        }
+        results.setResultData(data);
+        ArrayList<String> header = new ArrayList<>();
+        header.add("Attribute Name");
+        header.add("Attribute Value");
+        results.setResultHeaders(header);
+        return results;
+    }
+
+    private PServiceResult execPersAddDDT(String clientName, VectorMap queryParam, DB db) {
+        PServiceResult results = new PServiceResult();
+        String userName = null;
+        Long sessionId = null;
+        LinkedList<PDecayData> decayData = new LinkedList<>();
+        for (int i = 0; i < queryParam.size(); i++) {
+            String key = (String) queryParam.getKey(i);
+            if (key.equalsIgnoreCase("com") == true) {
+                continue;
+            } else if ( key.equalsIgnoreCase("ddt") == true) {
+                String value = (String) queryParam.getVal(i);
+                String values[] = value.split(":");
+                PDecayData ddt = new PDecayData();
+                System.out.println( values[0]);
+            } else if (key.equalsIgnoreCase("usr") == true) {
+                userName = (String) queryParam.getVal(i);
+            } else if (key.equalsIgnoreCase("sid") == true) {
+                String value = (String) queryParam.getVal(i);
+                try{                    
+                    sessionId = Long.parseLong(value);
+                } catch ( NumberFormatException e) {
+                    results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                    results.setErrorMessage("A feature value parameter is not a number");
+                    return results;
+                }
+            } else {
+                results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                results.setErrorMessage("The key " + key + " is no a valid parameter");
+                return results;
+            }
+            if( userName == null ) {
+                results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                results.setErrorMessage("There is no 'usr' parameter");
+                return results;
+            }
+            if( sessionId == null ) {
+                sessionId = SessionDAO.getLastSession( db, clientName, userName );
+            }
+        }
         return results;
     }
 }

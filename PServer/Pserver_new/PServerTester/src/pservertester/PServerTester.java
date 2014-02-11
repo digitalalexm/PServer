@@ -38,7 +38,9 @@ public class PServerTester {
         //testAttr();
         //testsetUser();
         //testgetUsers();
-        testgetUserProfile();
+        //testgetUserProfile();
+        //testgetUserAttributes();
+        testUserAddDDT();
     }
 
     private static void testAddFeatures() throws UnknownHostException {
@@ -208,16 +210,16 @@ public class PServerTester {
         DB db = mclient.getDB("mydb");
         VectorMap parameters = new VectorMap(1);
         parameters.add("com", "setusr");
-        parameters.add("attr_pAttr1", ""+ 3);
-        parameters.add("attr_pAttr2", ""+ 4);       
-        parameters.add("ftr_pftr1", ""+ 4);
-        parameters.add("ftr_pftr3", ""+ 4);
-        parameters.add("Otherpftr*", ""+ 10);
+        parameters.add("attr_pAttr1", "" + 3);
+        parameters.add("attr_pAttr2", "" + 4);
+        parameters.add("ftr_pftr1", "" + 4);
+        parameters.add("ftr_pftr3", "" + 4);
+        parameters.add("Otherpftr*", "" + 10);
         parameters.add("usr", "Alex");
         //parameters.add("blabla*", ""+ 10);
         Pers pers = new Pers();
         PServiceResult resault = pers.service(clientname, parameters, db);
-        parameters.add("attr_pAttr*", ""+ 5);
+        parameters.add("attr_pAttr*", "" + 5);
         resault = pers.service(clientname, parameters, db);
         System.out.println(resault.getErrorMessage());
     }
@@ -230,9 +232,9 @@ public class PServerTester {
         parameters.add("com", "getusrs");
         parameters.add("whr", "*");
         PServiceResult resault = pers.service(clientname, parameters, db);
-        System.out.println( resault.getResultHeaders().get(0) );
-        for( List<String> res : resault.getResult()){
-            System.out.println( res.get(0) );
+        System.out.println(resault.getResultHeaders().get(0));
+        for (List<String> res : resault.getResult()) {
+            System.out.println(res.get(0));
         }
     }
 
@@ -242,24 +244,66 @@ public class PServerTester {
         Pers pers = new Pers();
         VectorMap parameters = new VectorMap(1);
         parameters.add("com", "getusrftr");
-        //parameters.add("usr", "Alex");
+        parameters.add("usr", "Alex");
         //parameters.add("ftr", "Otherpftr3");
         parameters.add("num", "3");
         parameters.add("srt", "asc");
         PServiceResult resault = pers.service(clientname, parameters, db);
-        if( resault.getErrorMessage() == null ) {
-        ArrayList<ArrayList<String>> ret = resault.getResult();
-        for( ArrayList<String> row : ret ) {
-            String ftrName = row.get(0);
-            String ftrVal = row.get(1);
-            System.out.println(ftrName + "---"+ftrVal);
-        }
+        if (resault.getErrorMessage() == null) {
+            ArrayList<ArrayList<String>> ret = resault.getResult();
+            for (ArrayList<String> row : ret) {
+                String ftrName = row.get(0);
+                String ftrVal = row.get(1);
+                System.out.println(ftrName + "---" + ftrVal);
+            }
         } else {
             System.out.println(resault.getErrorMessage());
         }
         /*System.out.println( resault.getResultHeaders().get(0) );
-        for( List<String> res : resault.getResult()){
-            System.out.println( res.get(0) );
-        }*/
+         for( List<String> res : resault.getResult()){
+         System.out.println( res.get(0) );
+         }*/
+    }
+
+    private static void testgetUserAttributes() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "getusrattr");
+        parameters.add("usr", "Alex");
+        parameters.add("attr", "pAttr9");
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        if (resault.getErrorMessage() == null) {
+            ArrayList<ArrayList<String>> ret = resault.getResult();
+            for (ArrayList<String> row : ret) {
+                String ftrName = row.get(0);
+                String ftrVal = row.get(1);
+                System.out.println(ftrName + "---" + ftrVal);
+            }
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }
+    }
+
+    private static void testUserAddDDT() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "addddt");
+        parameters.add("usr", "Alex");
+        parameters.add("attr", "pAttr9");
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        if (resault.getErrorMessage() == null) {
+            ArrayList<ArrayList<String>> ret = resault.getResult();
+            for (ArrayList<String> row : ret) {
+                String ftrName = row.get(0);
+                String ftrVal = row.get(1);
+                System.out.println(ftrName + "---" + ftrVal);
+            }
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }
     }
 }
