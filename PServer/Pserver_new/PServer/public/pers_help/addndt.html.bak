@@ -10,7 +10,7 @@ template: pers?clnt=&lt;name|pass&gt;&amp;com=addndt&amp;sid=&lt;id&gt;&amp;usr=
           Order of query params are not important: the timestamp applies
           to all features in request. Feature values must be numeric.
 pattern : &lt;ftr1&gt; is the name of an existing feature, val is a real number<br>         &nbsp;and timestamps are long integers giving the milliseconds passed <br>          since January 1st, 1970 00:00:00.000 GMT.
-descript: For the specified user and for each 'ftr' parameter in the
+descript: for the specified user and for each 'ftr' parameter in the
           request, a new tuple (user, feature, value, timestamp, sid ) is
           inserted in table 'num_data'. In case the timestamp is
           provided by the application, it denotes when all the (user,

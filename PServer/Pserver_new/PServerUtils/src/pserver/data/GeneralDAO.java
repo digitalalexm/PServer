@@ -23,12 +23,15 @@ package pserver.data;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import java.util.ArrayList;
-import static pserver.data.PUserDAO.COLLECTION_USER_PROFILES;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURES;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURE_NAME;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURE_VALUE;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_ID_NAME;
+import static pserver.data.UserDAO.COLLECTION_USER_PROFILES;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURES;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURE_NAME;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURE_VALUE;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_ID_NAME;
+import pserver.parameters.Parameters;
 
 /**
  *
@@ -51,7 +54,7 @@ public class GeneralDAO {
     }
 
     private static void createCollectionIndeces(String collectionName, DBCollection collection) {
-        if (collectionName.equals(COLLECTION_USER_PROFILES)) {
+        if (collectionName.equals(COLLECTION_USER_PROFILES) == true ) {
             CreateUserCollectionIndeces(collection);
         } else {
             System.out.println("no indeces for " + collectionName);
@@ -62,5 +65,43 @@ public class GeneralDAO {
         collection.createIndex(new BasicDBObject("_id." + PREFERENCE_DOCUMENT_ID_NAME, 1));
         collection.createIndex(new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES + "." + PREFERENCE_DOCUMENT_FEATURE_NAME, 1));
         collection.createIndex(new BasicDBObject(PREFERENCE_DOCUMENT_FEATURES + "." + PREFERENCE_DOCUMENT_FEATURE_VALUE, 1));
+    }
+    
+    public static void save( DBCollection collection, DBObject doc ){
+        for( int i = 0 ; i < Parameters.WRITE_TRIES; i ++ ){
+            try{
+                collection.save(doc);
+                return;
+            } catch( MongoException e) {
+                Parameters.logger.error(System.currentTimeMillis() + " Save document failed - MongoException: " + e.getLocalizedMessage() );                
+                if( i == Parameters.WRITE_TRIES - 1 ) {
+                    e.printStackTrace();
+                    throw e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {                    
+                }
+            }
+        }
+    }
+    
+    public static void update( DBCollection collection, DBObject query, DBObject update, boolean upseart, boolean isMulti ){
+        for( int i = 0 ; i < Parameters.WRITE_TRIES; i ++ ){
+            try{
+                collection.update(query, update, upseart, isMulti);
+                return;
+            } catch( MongoException e) {
+                Parameters.logger.error(System.currentTimeMillis() + " Save document failed - MongoException: " + e.getLocalizedMessage() );                
+                if( i == Parameters.WRITE_TRIES - 1 ) {
+                    e.printStackTrace();
+                    throw e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {                    
+                }
+            }
+        }
     }
 }

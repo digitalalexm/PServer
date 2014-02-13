@@ -25,7 +25,7 @@ public class PDecayData {
     private String userName;
     private String feature;
     private long timeStamp;
-    private int sessionId;
+    private long sessionId;
 
     public PDecayData() {
         this.userName = feature = null;
@@ -56,25 +56,25 @@ public class PDecayData {
         this.feature = feature;
     }
 
-    public long getTimestamp() {
+    public long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimestamp( long timestamp ) {
+    public void setTimeStamp( long timestamp ) {
         this.timeStamp = timestamp;
     }
 
     /**
      * @return the sessionId
      */
-    public int getSessionId() {
+    public long getSessionId() {
         return sessionId;
     }
 
     /**
      * @param sessionId the sessionId to set
      */
-    public void setSessionId( int sessionId ) {
+    public void setSessionId( long sessionId ) {
         this.sessionId = sessionId;
     }
 }

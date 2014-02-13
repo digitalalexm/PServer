@@ -11,8 +11,11 @@ template: ster?clnt=&lt;name|pass&gt;&amp;com=addstr&amp;str=&lt;str&gt;&amp;&lt
           names must not contain special characters '*'and must not be an empty string.
 descript: A new stereotype based on the rule is inserted in the DB. The "rule" parameter is 
           a conjunction of logical operations on the demographic attributes. The form of the
-          pattern is attr_name1$logical_operator1$val1$logical_operator2$val2...attr_name2[operator]val2...
-	  The operator for equality comparison is ':', for greater than &gt;, greater equals to &gt;:<br>          lesser or equals to &lt;:, lesser than &lt;, not equal &lt;&gt;. We use the : and not the = symbol <br>	  because of the url character restrictions. The logical operations are the "or" and "and". There <br>          can be parenthesis too.
+          pattern is attr_name1[operator]val1|logial_operator|attr_name2[operator]val2...
+	  The operator for comparison can my : for equality and &gt;,&gt;:.&lt;:,&lt;,&lt;&gt; for 	  
+	  greater than, greater or equal than etc. We use the : and not the = symbol because of the
+	  url character restrictions. The logical operations are the "or" and "and". There can be 
+	  parenthesis too.
 	  If there is an existing stereotype with the same name an error will be returnsd.	  
           Note that if no rule parameter exists then pserver will create an empty stereotype. If a rule 
           parameter exists pserver will find all the users that satisfies the rule and will create the stereorype

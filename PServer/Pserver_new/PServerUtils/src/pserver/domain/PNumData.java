@@ -24,9 +24,9 @@ public class PNumData {
 
     private String user;
     private String feature;
-    private float featureValue;
+    private double featureValue;
     private long timeStamp;
-    private int sessionId;
+    private long sessionId;
 
     public PNumData() {
         this.user = this.feature = null;
@@ -35,7 +35,7 @@ public class PNumData {
         this.sessionId = 0;
     }
 
-    public PNumData( String user, String feature, float value, long time, int sid) {
+    public PNumData( String user, String feature, double value, long time, long sid) {
         this.user = user;
         this.feature = feature;
         this.featureValue = value;
@@ -59,11 +59,11 @@ public class PNumData {
         this.feature = feature;
     }
 
-    public float getFeatureValue() {
+    public double getFeatureValue() {
         return featureValue;
     }
 
-    public void setFeatureValue( float featureValue ) {
+    public void setFeatureValue( double featureValue ) {
         this.featureValue = featureValue;
     }
 
@@ -78,14 +78,14 @@ public class PNumData {
     /**
      * @return the sessionId
      */
-    public int getSessionId() {
+    public long getSessionId() {
         return sessionId;
     }
 
     /**
      * @param sessionId the sessionId to set
      */
-    public void setSessionId( int sessionId ) {
+    public void setSessionId( long sessionId ) {
         this.sessionId = sessionId;
     }
 }

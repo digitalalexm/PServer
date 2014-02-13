@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import pserver.data.FeatureAttributeDAO;
-import pserver.data.PUserDAO;
+import pserver.data.UserDAO;
 import pserver.domain.PFeature;
 import pserver.domain.PAttribute;
 import pserver.domain.PUser;
@@ -33,14 +33,16 @@ public class PServerTester {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) throws UnknownHostException {        
+        //testPersAddAttr();
         //testpers();
         //testAttr();
         //testsetUser();
         //testgetUsers();
         //testgetUserProfile();
-        //testgetUserAttributes();
-        testUserAddDDT();
+        testgetUserAttributes();
+        //testUserAddDDT();
+        //testUserAddNDT();
     }
 
     private static void testAddFeatures() throws UnknownHostException {
@@ -79,9 +81,9 @@ public class PServerTester {
             prefernces.add(new PFeature("ftr" + i, (float) Math.random(), 0.0f));
         }
         user.setPreferences(prefernces);
-        PUserDAO.SetUserProfile(db, clientname, user);
+        UserDAO.setUserProfile(db, clientname, user);
 
-        DBCollection col = db.getCollection(PUserDAO.COLLECTION_USER_PROFILES + "_" + clientname);
+        DBCollection col = db.getCollection(UserDAO.COLLECTION_USER_PROFILES + "_" + clientname);
         DBObject obj = col.findOne(new BasicDBObject("_id", new BasicDBObject("name", "some_user").append("idx", 0)));
 
         System.out.println(obj.toString());
@@ -95,7 +97,7 @@ public class PServerTester {
             updatePrefernces.add(new PFeature("ftr" + i, (float) Math.random(), 0.0f));
         }
 
-        PUserDAO.updateUserProfile(db, clientname, user.getName(), updatePrefernces, true);
+        UserDAO.updateUserProfile(db, clientname, user.getName(), updatePrefernces, true);
 
         //obj = col.findOne( new BasicDBObject("_id", new BasicDBObject("name","some_user").append("idx", 0)));        
         //System.out.println( obj.toString()  );
@@ -184,12 +186,14 @@ public class PServerTester {
         }
         parameters.add("other1", "a2");
         parameters.add("other2", "b2");
-
         parameters.add("com", "addAttr");
+        System.out.println("============final===============");
         resault = pers.service(clientname, parameters, db);
         if (resault.getReturnCode() != PServiceResult.STATUS_OK) {
             System.out.println("wroooong");
+            System.out.println( resault.getErrorMessage());
             return;
+        } else {            
         }
 
         parameters = new VectorMap(1);
@@ -270,16 +274,16 @@ public class PServerTester {
         DB db = mclient.getDB("mydb");
         Pers pers = new Pers();
         VectorMap parameters = new VectorMap(1);
-        parameters.add("com", "getusrattr");
-        parameters.add("usr", "Alex");
-        parameters.add("attr", "pAttr9");
+        parameters.add("com", "getattrdef");        
+        parameters.add("attr", "pAttr*");
         PServiceResult resault = pers.service(clientname, parameters, db);
         if (resault.getErrorMessage() == null) {
             ArrayList<ArrayList<String>> ret = resault.getResult();
-            for (ArrayList<String> row : ret) {
+            for (ArrayList<String> row : ret) {                
                 String ftrName = row.get(0);
-                String ftrVal = row.get(1);
-                System.out.println(ftrName + "---" + ftrVal);
+                String ftrtype = row.get(1);
+                String ftrVal = row.get(2);
+                System.out.println(ftrName + "---"+ ftrtype + "---" + ftrVal);
             }
         } else {
             System.out.println(resault.getErrorMessage());
@@ -293,17 +297,48 @@ public class PServerTester {
         VectorMap parameters = new VectorMap(1);
         parameters.add("com", "addddt");
         parameters.add("usr", "Alex");
-        parameters.add("attr", "pAttr9");
+        //parameters.add("sid", "1");        
+        parameters.add("ddt", "new");
         PServiceResult resault = pers.service(clientname, parameters, db);
         if (resault.getErrorMessage() == null) {
-            ArrayList<ArrayList<String>> ret = resault.getResult();
-            for (ArrayList<String> row : ret) {
-                String ftrName = row.get(0);
-                String ftrVal = row.get(1);
-                System.out.println(ftrName + "---" + ftrVal);
-            }
+           
         } else {
             System.out.println(resault.getErrorMessage());
         }
+    }
+    
+    private static void testUserAddNDT() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "addndt");
+        parameters.add("usr", "Alex");
+        //parameters.add("sid", "1");        
+        parameters.add("ndt", "new");
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        if (resault.getErrorMessage() == null) {
+           
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }
+    }
+
+    private static void testPersAddAttr() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Pers pers = new Pers();        
+        
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("com", "addattr");
+        for (int i = 0; i < 100; i++) {
+            parameters.add("pAttr", "str:value " + i);
+        }        
+        PServiceResult resault = pers.service(clientname, parameters, db);
+        if (resault.getReturnCode() == PServiceResult.STATUS_OK) {            
+            return;
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }        
     }
 }

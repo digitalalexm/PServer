@@ -22,10 +22,13 @@ package pserver.domain;
  */
 public class PAttribute {
 
+    public enum ATTRIBUTE_TYPE {TYPE_NUMBER, TYPE_STRING }    
+    
     private String name;
     private String value;
     private String defValue;
-
+    private ATTRIBUTE_TYPE type;
+    
     public PAttribute() {
         name = null;
         value = defValue = null;        
@@ -64,5 +67,14 @@ public class PAttribute {
 
     public void setDefValue( String defValue ) {
         this.defValue = defValue;
+    }
+    
+    
+    public ATTRIBUTE_TYPE getType() {
+        return type;
+    }
+
+    public void setType(ATTRIBUTE_TYPE type) {
+        this.type = type;
     }
 }

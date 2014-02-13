@@ -39,31 +39,43 @@ public class FeatureAttributeDAO {
     public static final String COLLECTION_FEATURES = "features";
     public static final String FEATURE_DOCUMENT_DEFAULT_VALUE = "def_value";
     public static final String COLLECTION_ATTRIBUTES = "attributes";
+    public static final String ATTRIBUTE_DOCUMENT_VALUE_TYPE = "type";
     public static final String ATTRIBUTE_DOCUMENT_DEFAULT_VALUE = "def_value";
 
     public static void setFeatures(DB db, String pclient, ArrayList<PFeature> features) {
-        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES);
         for (PFeature feature : features) {
-            featureCollection.save(new BasicDBObject("_id", feature.getName()).append(FEATURE_DOCUMENT_DEFAULT_VALUE, feature.getDefValue()));
+            BasicDBObject doc = new BasicDBObject("_id", feature.getName()).append(FEATURE_DOCUMENT_DEFAULT_VALUE, feature.getDefValue());
+            GeneralDAO.save(featureCollection, doc);
         }
     }
 
     public static Double getFeatureDefValue(DB db, String pclient, String featureName) {
-        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
-        DBObject dbobj = featureCollection.findOne(new BasicDBObject("_id", featureName));        
-        if( dbobj != null ) {
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES);
+        DBObject dbobj = featureCollection.findOne(new BasicDBObject("_id", featureName));
+        if (dbobj != null) {
             return (Double) dbobj.get(FEATURE_DOCUMENT_DEFAULT_VALUE);
         } else {
             return null;
-        }        
+        }
     }
-    
+
+    public static boolean isAValicFeature(DB db, String pclient, String featureName) {
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES);
+        DBObject dbobj = featureCollection.findOne(new BasicDBObject("_id", featureName));
+        if (dbobj != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public static ArrayList<PEntry<String, Double>> getFeatureDefValues(DB db, String pclient, String regEx) {
-        if( regEx.trim().equals("*")) {
+        if (regEx.trim().equals("*")) {
             regEx = "";
         }
         ArrayList<PEntry<String, Double>> defValues = new ArrayList<PEntry<String, Double>>();
-        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES );
+        DBCollection featureCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_FEATURES);
         DBCursor cursor = featureCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));
         try {
             while (cursor.hasNext()) {
@@ -78,42 +90,81 @@ public class FeatureAttributeDAO {
         }
         return defValues;
     }
-    
+
     public static void setAttributes(DB db, String pclient, ArrayList<PAttribute> attributes) {
         DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         for (PAttribute attribute : attributes) {
-            attributeCollection.save(new BasicDBObject("_id", attribute.getName()).append(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE, attribute.getDefValue()));
+            BasicDBObject doc;
+            if (attribute.getType() == PAttribute.ATTRIBUTE_TYPE.TYPE_STRING) {
+                doc = new BasicDBObject("_id", attribute.getName()).append(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE, attribute.getDefValue()).append(ATTRIBUTE_DOCUMENT_VALUE_TYPE, 0);
+            } else {
+                doc = new BasicDBObject("_id", attribute.getName()).append(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE, Double.parseDouble(attribute.getDefValue())).append(ATTRIBUTE_DOCUMENT_VALUE_TYPE, 1);
+            }            
+            GeneralDAO.save(attributeCollection, doc);
         }
     }
 
-    public static String getAttributeDefValue(DB db, String pclient, String attributeName) {
+    public static PAttribute getAttributeDefValue(DB db, String pclient, String attributeName) {
         DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
-        DBObject dbobj = attributeCollection.findOne(new BasicDBObject("_id", attributeName));        
-        if( dbobj != null ) {
-            return (String) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
+        DBObject dbobj = attributeCollection.findOne(new BasicDBObject("_id", attributeName));
+        if (dbobj != null) {
+            PAttribute retVal = new PAttribute();
+            int type = (Integer) dbobj.get(ATTRIBUTE_DOCUMENT_VALUE_TYPE);
+            if (type == 0) {
+                String val = (String) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
+                retVal.setType(PAttribute.ATTRIBUTE_TYPE.TYPE_STRING);
+                retVal.setValue(val);
+                retVal.setDefValue(val);
+            } else {
+                Double val = (Double) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
+                retVal.setType(PAttribute.ATTRIBUTE_TYPE.TYPE_NUMBER);
+                retVal.setValue(val + "");
+                retVal.setDefValue(val + "");
+            }
+            return retVal;
         } else {
             return null;
         }
     }
 
-    public static ArrayList<PEntry<String, String>> getAttributeDefValues(DB db, String pclient, String regEx) {
-        if( regEx.trim().equals("*")) {
+    public static ArrayList<PAttribute> getAttributeDefValues(DB db, String pclient, String regEx) {
+        if (regEx.trim().equals("*")) {
             regEx = "";
         }
-        ArrayList<PEntry<String, String>> defValues = new ArrayList<PEntry<String, String>>();
+        ArrayList<PAttribute> defValues = new ArrayList<>();
         DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
         DBCursor cursor = attributeCollection.find(new BasicDBObject("_id", new BasicDBObject("$regex", regEx)));
         try {
             while (cursor.hasNext()) {
                 DBObject dbobj = (BasicDBObject) cursor.next();
-                PEntry<String, String> value = new PEntry<String, String>();
-                value.setKey((String) dbobj.get("_id"));
-                value.setValue((String) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE));
-                defValues.add(value);
+                PAttribute retVal = new PAttribute();
+                int type = (Integer) dbobj.get(ATTRIBUTE_DOCUMENT_VALUE_TYPE);
+                if (type == 0) {
+                    String val = (String) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
+                    retVal.setType(PAttribute.ATTRIBUTE_TYPE.TYPE_STRING);
+                    retVal.setValue(val);
+                    retVal.setDefValue(val);
+                } else {
+                    Double val = (Double) dbobj.get(ATTRIBUTE_DOCUMENT_DEFAULT_VALUE);
+                    retVal.setType(PAttribute.ATTRIBUTE_TYPE.TYPE_NUMBER);
+                    retVal.setValue(val + "");
+                    retVal.setDefValue(val + "");
+                }
+                defValues.add(retVal);
             }
         } finally {
             cursor.close();
         }
         return defValues;
+    }
+
+    public static boolean isAValidAttribute(DB db, String pclient, String attributeName) {
+        DBCollection attributeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_ATTRIBUTES);
+        DBObject dbobj = attributeCollection.findOne(new BasicDBObject("_id", attributeName));
+        if (dbobj != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

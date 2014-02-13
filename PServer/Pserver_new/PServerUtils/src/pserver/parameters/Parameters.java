@@ -29,7 +29,12 @@ import pserver.tools.BasicPServerLoger;
 public class Parameters {
     /**
      * This number defines how much features will be stored in every preference document
-     */
+     */    
     public static int NUM_OF_FEATURES_PER_PROFILE = 10000;
-    public static BasicPServerLoger logger = new BasicPServerLoger();
+    /**
+     * This is the number of times that the system will try to write something into the database
+     * if an error occures
+     */
+    public static int WRITE_TRIES = 10;
+    public static BasicPServerLoger logger = new BasicPServerLoger();    
 }

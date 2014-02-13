@@ -36,11 +36,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_ID_INDEX;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_ID_NAME;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURES;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURE_NAME;
-import static pserver.data.PUserDAO.PREFERENCE_DOCUMENT_FEATURE_VALUE;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_ID_INDEX;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_ID_NAME;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURES;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURE_NAME;
+import static pserver.data.UserDAO.PREFERENCE_DOCUMENT_FEATURE_VALUE;
 import pserver.domain.PFeature;
 import pserver.parameters.Parameters;
 
@@ -91,8 +91,8 @@ public class GeneralPreferenceDAO {
             featureJson.append(feature.getName(), feature.getValue());
             preferences.add(featureNameValueJson);
         }
-        userJson.append(PREFERENCE_DOCUMENT_FEATURES, preferences);
-        collection.save(userJson);
+        userJson.append(PREFERENCE_DOCUMENT_FEATURES, preferences);        
+        GeneralDAO.save(collection, userJson);
         return userJson;
     }
 

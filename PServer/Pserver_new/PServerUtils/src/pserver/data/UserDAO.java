@@ -36,7 +36,7 @@ import pserver.util.CollectionManager;
  *
  * @author alexm
  */
-public class PUserDAO {
+public class UserDAO {
     /*
      * the name of the collection that stores all the user profiles
      */
@@ -64,7 +64,7 @@ public class PUserDAO {
      * @param pclient the pserver client that wants to store profiles
      * @param user the profile that needs to be stored
      */
-    public static void SetUserProfile(DB db, String pclient, PUser user) {
+    public static void setUserProfile(DB db, String pclient, PUser user) {
         /*
          * The name of all the collections are based on the name of the pserver client
          */
@@ -100,7 +100,7 @@ public class PUserDAO {
             attributeList.add(adObj);
         }
         BasicDBObject uAttrDoc = new BasicDBObject("_id", userName).append(ATTRIBUTES_DOCUMENT_ATTRIBUTES, attributeList);
-        userAttributes.save(uAttrDoc);
+        GeneralDAO.save(userAttributes, uAttrDoc);        
     }
 
     public static List<String> getUsers(DB db, String pclient, String regEx) {
@@ -140,8 +140,7 @@ public class PUserDAO {
         BasicDBObject thirdOp = new BasicDBObject("$match", new BasicDBObject(ATTRIBUTES_DOCUMENT_ATTRIBUTES + "." + ATTRIBUTES_DOCUMENT_ATTRIBUTE_NAME, new BasicDBObject("$regex", attrRegEx)));
 
         AggregationOutput output = userAttributesCollection.aggregate(firtsOp, secondOp, thirdOp);
-        
-        
+                
         BasicDBObject doc = (BasicDBObject) userAttributesCollection.findOne(new BasicDBObject("_id", userName));
         BasicDBList attrList = (BasicDBList) doc.get(ATTRIBUTES_DOCUMENT_ATTRIBUTES);
         Iterable<DBObject> it = output.results();
@@ -155,5 +154,15 @@ public class PUserDAO {
             attributes.add(attrObj);
         }
         return attributes;
+    }
+
+    public static boolean isAValidUser(DB db, String pclient, String userName) {
+        DBCollection userAttributesCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_USER_ATTRIBUTES);
+        DBObject doc = userAttributesCollection.findOne(new BasicDBObject("_id",userName), new BasicDBObject("_id",1) );        
+        if( doc == null ) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
