@@ -284,6 +284,12 @@ public class Pers implements PService {
                         return results;
                     } else {
                         attr.setName(key);
+                        attr.setType(tmpSValue.getType());
+                        if( tmpSValue.getType() == PAttribute.ATTRIBUTE_TYPE.TYPE_NUMBER  == true && Validator.isReal(attr.getValue()) == false) {
+                            results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                            results.setErrorMessage("The attribute " + key + " get only number values");
+                            return results;
+                        }
                         attr.setDefValue(tmpSValue.getDefValue());
                     }
                     attributes.add(attr);
@@ -300,7 +306,13 @@ public class Pers implements PService {
                     for (PAttribute value : attributesEntries) {
                         PAttribute attrToAdd = new PAttribute();
                         attrToAdd.setName(value.getName());
+                        if( attrToAdd.getType() == PAttribute.ATTRIBUTE_TYPE.TYPE_NUMBER  == true && Validator.isReal(attr.getValue()) == false) {
+                            results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                            results.setErrorMessage("The attribute " + attrToAdd.getName() + " get only number values");
+                            return results;
+                        }
                         attrToAdd.setValue(attr.getValue());
+                        attrToAdd.setType(value.getType());
                         attrToAdd.setDefValue(value.getValue());
                         attributes.add(attrToAdd);
                     }
