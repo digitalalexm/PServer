@@ -6,19 +6,15 @@
   </head>
   <body bgcolor="#FFFFCC">
     <pre>-addstr
-template: ster?clnt=&lt;name|pass&gt;&amp;com=addstr&amp;str=&lt;str&gt;&amp;&lt;rule&gt;=pattern...
+template: ster?clnt=&lt;name|pass&gt;&amp;com=addstr&amp;str=&lt;str&gt;[&amp;&lt;rule&gt;=pattern1...&amp;&lt;rule&gt;=patternN]
           Order of query params is not important. Stereotype
           names must not contain special characters '*'and must not be an empty string.
-descript: A new stereotype based on the rule is inserted in the DB. The "rule" parameter is 
+descript: A new stereotype based on the rules is inserted in the DB. The "rule" parameter is 
           a conjunction of logical operations on the demographic attributes. The form of the
-          pattern is attr_name1$logical_operator1$val1$logical_operator2$val2...attr_name2[operator]val2...
-	  The operator for equality comparison is ':', for greater than &gt;, greater equals to &gt;:<br>          lesser or equals to &lt;:, lesser than &lt;, not equal &lt;&gt;. We use the : and not the = symbol <br>	  because of the url character restrictions. The logical operations are the "or" and "and". There <br>          can be parenthesis too.
-	  If there is an existing stereotype with the same name an error will be returnsd.	  
-          Note that if no rule parameter exists then pserver will create an empty stereotype. If a rule 
-          parameter exists pserver will find all the users that satisfies the rule and will create the stereorype
-	  profile
-example : ster?clnt=name|pass&amp;com=addstr&amp;str=educated&amp;rule=expert.computer:yes|and|educ:3
-returns : 200 OK, 401 (fail, request error), 501 (fail, server error)
+          pattern is attr_name1$operator$val1$...operator$valN;...attr_nameN[operator]valM...<br>	  A stereotype can have many rules. A user will be assign to the stereotype if his/her attributes <br>	  sattisfy one of the rules. <br>         &nbsp;The operator for equality comparison is ':', for greater than &gt;, greater equals to &gt;:<br>          lesser or equals to &lt;:, lesser than &lt;, not equal &lt;&gt;. We use the : and not the = symbol <br>	  because of the url character restrictions. The logical operations are the "or" and "and". There <br>          can be parenthesis too.
+	  If there is an existing stereotype with the same name an error will be returned.	  
+          Note that if no rule parameter exists then pserver will create an empty stereotype and the<br>          users that will belong to this stereotype must . If a rule parameter exists pserver will <br>          find all the users that satisfies the rule and will create the stereotype profile. 
+example : ster?clnt=name|pass&amp;com=addstr&amp;str=it_expert&amp;rule=computer_science_degree$:$yes;work_years$&gt;:5<br>          ster?clnt=name|pass&amp;com=addstr&amp;str=teenager&amp;rule=age$&gt;:$13;age$&lt;:$18;<br>returns : 200 OK, 401 (fail, request error), 501 (fail, server error)
 200 OK  : no response body exists.</pre>
   </body>
 </html>

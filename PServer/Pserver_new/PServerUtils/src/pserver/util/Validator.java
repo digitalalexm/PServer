@@ -10,7 +10,7 @@ package pserver.util;
  */
 public class Validator {
     public static boolean isAValidAttributeName( String name )  {
-        if( name.contains("$") || name.contains("*") || name.contains(":") ){
+        if( name.contains("$") || name.contains("*") || name.contains(":") || name.contains(";") ){
             return false;
         } else {
             return true;
@@ -18,7 +18,7 @@ public class Validator {
     }
     
     public static boolean isAValidFeatureName( String name )  {
-        if( name.contains("$") || name.contains("*") || name.contains(":") ){
+        if( name.contains("$") || name.contains("*") || name.contains(":") || name.contains(";") ){
             return false;
         } else {
             return true;
@@ -26,7 +26,7 @@ public class Validator {
     }
     
     public static boolean isAValidStereotypeName( String name )  {
-        if( name.contains("$") || name.contains("*") || name.contains(":") ){
+        if( name.contains("$") || name.contains("*") || name.contains(":") || name.contains(";") ){
             return false;
         } else {
             return true;
@@ -52,6 +52,18 @@ public class Validator {
     }
 
     public static String getAttributeInvalidCharachters() {
-        return "'$',':',''*";
+        return "'$',':','*',';'";
+    }
+
+    public static boolean isAValidRule(String rule) {
+        String subRules[] = rule.split(";");
+        for( int i = 0 ; i < subRules.length; i ++){
+            String subRule = subRules[i];
+            String[] subRuleParts = subRule.split("$");
+            if( subRuleParts.length < 3 || subRuleParts.length % 2 != 1 ) {
+                return false;
+            }
+        }
+        return true;
     }
 }
