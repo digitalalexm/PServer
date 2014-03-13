@@ -19,6 +19,7 @@ import pserver.domain.PAttribute;
 import pserver.domain.PUser;
 import pserver.parameters.Parameters;
 import pserver.pservlets.Implementations.Pers;
+import pserver.pservlets.Implementations.Ster;
 import pserver.pservlets.PServiceResult;
 import pserver.util.VectorMap;
 
@@ -40,9 +41,10 @@ public class PServerTester {
         //testsetUser();
         //testgetUsers();
         //testgetUserProfile();
-        testgetUserAttributes();
+        //testgetUserAttributes();
         //testUserAddDDT();
         //testUserAddNDT();
+        trstAddStr();
     }
 
     private static void testAddFeatures() throws UnknownHostException {
@@ -335,6 +337,23 @@ public class PServerTester {
             parameters.add("pAttr", "str:value " + i);
         }        
         PServiceResult resault = pers.service(clientname, parameters, db);
+        if (resault.getReturnCode() == PServiceResult.STATUS_OK) {            
+            return;
+        } else {
+            System.out.println(resault.getErrorMessage());
+        }        
+    }
+
+    private static void trstAddStr() throws UnknownHostException {
+        MongoClient mclient = new MongoClient();
+        DB db = mclient.getDB("mydb");
+        Ster ster = new Ster();        
+        
+        VectorMap parameters = new VectorMap(1);
+        parameters.add("str", "stereotype1");
+        parameters.add("com", "addstr");      
+        parameters.add("rule", "attr1$:$val1;attr2$:$val2");
+        PServiceResult resault = ster.service(clientname, parameters, db);
         if (resault.getReturnCode() == PServiceResult.STATUS_OK) {            
             return;
         } else {

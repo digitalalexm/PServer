@@ -5,6 +5,8 @@
 package pserver.pservlets.Implementations;
 
 import com.mongodb.DB;
+import pserver.data.FeatureAttributeDAO;
+import pserver.domain.PAttribute;
 import pserver.pservlets.PService;
 import pserver.pservlets.PServiceResult;
 import pserver.util.Validator;
@@ -58,27 +60,60 @@ public class Ster implements PService {
 
     private PServiceResult execSterAddStr(String clientName, VectorMap queryParam, DB db) {
         PServiceResult results = new PServiceResult();
+        String stereotypeName = null;
         for (int i = 0; i < queryParam.size(); i++) {
             String key = (String) queryParam.getKey(i);
             if (key.equalsIgnoreCase("com") == true) {
                 continue;
             } else if (key.equals("str") == true) {
-                String stereotypeName = (String) queryParam.getVal(i);
+                stereotypeName = (String) queryParam.getVal(i);
             } else if (key.equals("rule") == true) {
                 String rule = (String) queryParam.getVal(i);
                 String subRules[] = rule.split(";");
                 for (int j = 0; j < subRules.length; j++) {
                     String subRule = subRules[j];
-                    String[] subRuleParts = subRule.split("$");
-                    if (subRuleParts.length < 3 || subRuleParts.length % 2 != 1) {                        
+                    String[] subRuleParts = subRule.split("\\$");
+                    System.out.println("len" + subRuleParts.length);
+                    if (subRuleParts.length < 3 || subRuleParts.length % 2 != 1) {
                         results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
-                        results.setErrorMessage("'The 'rule' paraeter has not enouph data");
+                        results.setErrorMessage("'The 'rule' paraeter has not enough data");
                         return results;
                     }
+                    String attrName = subRuleParts[0];                    
+                    PAttribute pattr = FeatureAttributeDAO.getAttributeDefValue(db, clientName, attrName);
+                    if( pattr == null ) {
+                        results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                        results.setErrorMessage("'"+ attrName + "' is not a valid attribute");
+                        return results;
+                    }
+                    for( int k = 1 ; k < subRuleParts.length; k+= 2 ) {
+                        String operator = subRuleParts[k];
+                        String parameterValue = subRuleParts[k+1];
+                        if( pattr.getType() == PAttribute.ATTRIBUTE_TYPE.TYPE_NUMBER ) {
+                            try{ 
+                                double tmpDVal = Double.parseDouble(parameterValue );                                
+                            } catch (NumberFormatException e){
+                                results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                                results.setErrorMessage("'"+ attrName + "' is not a valid attribute");
+                                return results;
+                            }
+                        }
+                    }
                 }
-                
+            } else {
+                results = new PServiceResult();
+                results.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+                results.setErrorMessage("'"+ key + "' parameter is invalid");
+                return results;
             }
         }
+        if (stereotypeName == null) {
+            PServiceResult retault = new PServiceResult();
+            retault.setReturnCode(PServiceResult.STATUS_PARAMETER_ERROR);
+            retault.setErrorMessage("'str' parameter is missing");
+            return retault;            
+        }
+
         return results;
     }
 }
