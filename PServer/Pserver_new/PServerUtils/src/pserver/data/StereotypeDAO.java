@@ -16,10 +16,28 @@
  */
 package pserver.data;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import pserver.domain.PStereotype;
+
 /**
  *
  * @author alexm
  */
 public class StereotypeDAO {
+    public static final String COLLECTION_STEREOTYPES = "stereotypes";
     
+    public static PStereotype getStereotype(DB db, String pclient, String stereotypeName, boolean mustLoadUsers, boolean mustLoadProfile ) {
+        DBCollection stereotypeCollection = GeneralDAO.getCollection(db, pclient, COLLECTION_STEREOTYPES);
+        DBObject dbobj = stereotypeCollection.findOne(new BasicDBObject("_id", stereotypeName));
+        if( dbobj != null ) {
+            PStereotype stereotype = new PStereotype();
+            stereotype.setName( stereotypeName );
+            return stereotype;
+        } else {
+            return null;
+        }
+    }
 }

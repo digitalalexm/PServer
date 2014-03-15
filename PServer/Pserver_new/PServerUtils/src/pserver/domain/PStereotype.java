@@ -16,10 +16,53 @@
 */
 package pserver.domain;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author alexm
  */
 public class PStereotype {
+
+    private String name;
+    private ArrayList<PStereotypeRule> rules;
+    private ArrayList<PSterUser> users;
+    private ArrayList<PFeature> features;
+
+    public PStereotype() {
+        rules = new ArrayList<>();
+    }            
+    
+    public void setName(String stereotypeName) {
+        this.name = stereotypeName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<PStereotypeRule> getRules() {
+        return rules;
+    }
+
+    public void setRules(ArrayList<PStereotypeRule> rules) {
+        this.rules = rules;
+    }
+
+    public ArrayList<PSterUser> getUsers() {
+        return users;
+    }
+
+    public void setUsers(ArrayList<PSterUser> users) {
+        this.users = users;
+    }
+
+    public ArrayList<PFeature> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(ArrayList<PFeature> features) {
+        this.features = features;
+    }
 
 }

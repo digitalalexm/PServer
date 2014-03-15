@@ -6,6 +6,7 @@ package pserver.pservlets.Implementations;
 
 import com.mongodb.DB;
 import pserver.data.FeatureAttributeDAO;
+import pserver.data.StereotypeDAO;
 import pserver.domain.PAttribute;
 import pserver.pservlets.PService;
 import pserver.pservlets.PServiceResult;
@@ -67,6 +68,11 @@ public class Ster implements PService {
                 continue;
             } else if (key.equals("str") == true) {
                 stereotypeName = (String) queryParam.getVal(i);
+                if( StereotypeDAO.getStereotype(db, clientName, stereotypeName, false, false) == null ){
+                    results.setReturnCode(PServiceResult.STATUS_SYNTAX_ERROR);
+                    results.setErrorMessage("'The stereotype name'" + stereotypeName + "' already exists");
+                    return results;
+                }
             } else if (key.equals("rule") == true) {
                 String rule = (String) queryParam.getVal(i);
                 String subRules[] = rule.split(";");
